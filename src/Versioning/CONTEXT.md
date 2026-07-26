@@ -8,7 +8,7 @@ declarative source. Terms below are specific to this context.
 
 **Version**:
 A named snapshot of the API surface, identified by the OpenAPI `info.version`
-value. Identifiers are opaque tokens (order is not inferred from the string).
+value. Ordered by the active comparator (semver by default).
 _Avoid_: Revision, release
 
 **Head**:
@@ -18,16 +18,22 @@ the configured `info.version`. A movable pointer: versions may exist above it
 _Avoid_: Latest, current, tip
 
 **Version line**:
-The single total order of versions, derived from mutator edges (not string
-comparison) and published to clients. Shared contract between backend and
-client.
+The single total order of versions, derived by sorting the versions mutators
+produce (their `for` values) plus head with the version comparator, then
+published to clients. Shared contract between backend and client.
 _Avoid_: Version list, history
 
+**Version comparator**:
+The pluggable total order over version identifiers used to build the version
+line. Ships as semver (default) and date; implement it for a custom scheme.
+_Avoid_: Sorter, ordering
+
 **Version mutator**:
-A class describing one backward-compatible downgrade step (`from` newer → `to`
-older) for one resource. Bound via a repeatable attribute; carries class-level
-declarative mutations and, when value logic is needed, methods bound by a
-method-level mutation attribute. No interface.
+A class describing what one resource looks like *for* a given version (the older
+side of a downgrade step; the newer side is the next version above it). Bound via
+a repeatable attribute carrying `for`; holds class-level declarative mutations
+and, when value logic is needed, methods bound by a method-level mutation
+attribute. No interface.
 _Avoid_: Transformer, migration, converter
 
 **Mutation**:

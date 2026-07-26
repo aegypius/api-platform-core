@@ -15,14 +15,16 @@ declarative *version mutators*.
 
 - The current API version is API Platform's `info.version` (`api_platform.version`).
   That is *head*.
-- A **version mutator** describes one backward-compatible **downgrade step** from
-  a newer version to the version just below it, for one resource.
+- A **version mutator** declares what one resource looks like `for` an older
+  version (the version it produces). You only name the version you know now —
+  never the future one.
 - A client asks for a version with the `Accept-Version` header. API Platform
   applies the mutators from head down to that version, newest-first, to both the
   response body and the documentation. No header means head.
-- Version identifiers are **opaque tokens** (`1.0.0`, `2024-11`, even `banana`).
-  Their order comes only from the mutators' `from`/`to` edges — never from string
-  comparison — and is published to clients.
+- The order of versions is *derived* by a **comparator** over the versions your
+  mutators produce plus head (default semver; a date comparator ships; implement
+  your own for a custom scheme). There is no version list to maintain, and the
+  ordered set is published to clients.
 
 ## Enabling it
 
@@ -35,14 +37,15 @@ version and (optionally) the request header:
 api_platform:
     version: '2.0.0'          # head
     versioning:
-        header: 'Accept-Version'   # default
+        header: 'Accept-Version'                              # default
+        comparator: 'api_platform.versioning.comparator.semver'  # default; or .date, or your own service
 ```
 
 ## Writing a version mutator
 
-A mutator is a class bound to a `(resource, from, to)` step with `#[VersionMutator]`
-(repeat it to reuse one class across resources or steps). Mutations are declared
-with attributes.
+A mutator is a class bound with `#[VersionMutator(resource, for)]` — `for` is the
+version it produces (repeat the attribute to reuse one class across resources or
+versions). Mutations are declared with attributes.
 
 Placement decides behaviour: a mutation attribute **on the class** is
 declarative-only; the **same** attribute **on a method** additionally binds that
@@ -55,19 +58,19 @@ use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 
-// Pure-declarative step: 2.0.0 (head) -> 1.0.0
-#[VersionMutator(resource: Book::class, from: '2.0.0', to: '1.0.0')]
+// Pure-declarative: what the resource looks like for 1.0.0.
+#[VersionMutator(resource: Book::class, for: '1.0.0')]
 #[Remove('discount')]              // "discount" did not exist in 1.0.0
 #[Rename(from: 'title', to: 'name')] // 1.0.0 served "name"
-final class BookV2ToV1
+final class BookFor1
 {
 }
 ```
 
 ```php
-// Step that needs value logic: 3.0.0 (head) -> 2.0.0
-#[VersionMutator(resource: Book::class, from: '3.0.0', to: '2.0.0')]
-final class BookV3ToV2
+// Needs value logic: what the resource looks like for 2.0.0.
+#[VersionMutator(resource: Book::class, for: '2.0.0')]
+final class BookFor2
 {
     // Rename + reshape: the method receives the bound property value, the full
     // item array, and the context (resource, operation, fromVersion, toVersion,
@@ -78,7 +81,7 @@ final class BookV3ToV2
         return (new \DateTimeImmutable((string) $value))->format('Y-m-d\TH:i:s');
     }
 
-    // Type change: 3.0.0 serves a boolean, 2.0.0 served 0/1.
+    // Type change: head serves a boolean, 2.0.0 served 0/1.
     #[ChangeType(property: 'available', from: 'boolean', to: 'integer')]
     public function downgradeAvailable(mixed $value, array $data, array $context): int
     {
