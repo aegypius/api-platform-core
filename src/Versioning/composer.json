@@ -28,11 +28,15 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5 || ^12.2",
+        "api-platform/state": "^5.0@alpha",
         "symfony/http-foundation": "^7.4 || ^8.0",
+        "symfony/http-kernel": "^7.4 || ^8.0",
         "symfony/serializer": "^7.4 || ^8.0"
     },
     "suggest": {
+        "api-platform/state": "To integrate versioning with the Symfony serializer context builder.",
         "symfony/http-foundation": "To use the default header-based version resolver (already available on Symfony, and on Laravel whose request extends the HttpFoundation request).",
+        "symfony/http-kernel": "To negotiate the version on the request and add discoverability headers to the response under Symfony.",
         "symfony/serializer": "To downgrade responses at serialization time via the version-mutation normalizer."
     },
     "autoload": {
