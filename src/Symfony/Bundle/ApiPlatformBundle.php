@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Symfony\Bundle;
 
+use ApiPlatform\Versioning\Symfony\DependencyInjection\VersioningPass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\AttributeFilterPass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\AttributeResourcePass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\AuthenticatorManagerPass;
@@ -65,5 +66,9 @@ final class ApiPlatformBundle extends Bundle
         $container->addCompilerPass(new PropertyInfoTagPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100);
         // Must run after Symfony's TransformerPass so we can rely on the value_object_transformer tag being processed.
         $container->addCompilerPass(new JsonStreamerTransformerPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -10);
+
+        if (class_exists(VersioningPass::class)) {
+            $container->addCompilerPass(new VersioningPass());
+        }
     }
 }

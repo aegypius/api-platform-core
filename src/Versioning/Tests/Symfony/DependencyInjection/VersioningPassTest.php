@@ -37,7 +37,7 @@ final class VersioningPassTest extends TestCase
 {
     private const CONFIG_DIR = __DIR__.'/../../../../Symfony/Bundle/Resources/config';
 
-    private function container(): ContainerBuilder
+    private function container(bool $withMutators = true): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $container->setParameter('api_platform.version', 'cherry');
@@ -47,13 +47,26 @@ final class VersioningPassTest extends TestCase
         $container->register('api_platform.serializer.context_builder', StubContextBuilder::class);
         $container->register('api_platform.serializer.normalizer.item', StubItemNormalizer::class);
 
-        foreach ([BookCherryToBanana::class, BookBananaToApple::class, DropInternalNotes::class] as $class) {
-            $container->register($class, $class)->addTag(VersioningPass::MUTATOR_TAG);
+        if ($withMutators) {
+            foreach ([BookCherryToBanana::class, BookBananaToApple::class, DropInternalNotes::class] as $class) {
+                $container->register($class, $class)->addTag(VersioningPass::MUTATOR_TAG);
+            }
         }
 
         (new PhpFileLoader($container, new FileLocator(self::CONFIG_DIR)))->load('versioning.php');
 
         return $container;
+    }
+
+    public function testStaysInertWithoutMutators(): void
+    {
+        $container = $this->container(withMutators: false);
+        (new VersioningPass())->process($container);
+
+        // The request/response hooks are removed so behaviour is unchanged.
+        $this->assertFalse($container->hasDefinition('api_platform.versioning.serializer.context_builder'));
+        $this->assertFalse($container->hasDefinition('api_platform.versioning.event_listener.add_headers'));
+        $this->assertFalse($container->hasDefinition('api_platform.serializer.normalizer.item.versioning'));
     }
 
     public function testPassWiresRegistryLocatorAndNormalizerDecoration(): void

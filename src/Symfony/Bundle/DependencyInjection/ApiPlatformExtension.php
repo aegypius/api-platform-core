@@ -60,6 +60,9 @@ use ApiPlatform\OpenApi\Model\Tag;
 use ApiPlatform\RamseyUuid\Serializer\UuidDenormalizer;
 use ApiPlatform\State\ApiResource\Error;
 use ApiPlatform\State\ParameterProviderInterface;
+use ApiPlatform\Versioning\Attributes\VersionMutator;
+use ApiPlatform\Versioning\Symfony\DependencyInjection\VersioningPass;
+use ApiPlatform\Versioning\Version\VersionGraph;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Symfony\Validator\Metadata\Property\Restriction\PropertySchemaRestrictionMetadataInterface;
@@ -235,6 +238,15 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->registerForAutoconfiguration(ParameterProviderInterface::class)
             ->addTag('api_platform.parameter_provider');
 
+        if (class_exists(VersionMutator::class)) {
+            $container->registerAttributeForAutoconfiguration(
+                VersionMutator::class,
+                static function (ChildDefinition $definition): void {
+                    $definition->addTag(VersioningPass::MUTATOR_TAG);
+                },
+            );
+        }
+
         $container->registerAttributeForAutoconfiguration(
             AsResourceMutator::class,
             static function (ChildDefinition $definition, AsResourceMutator $attribute, \ReflectionClass $reflector): void { // @phpstan-ignore-line
@@ -325,6 +337,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $loader->load('api.php');
         $loader->load('filter.php');
 
+        if (class_exists(VersionGraph::class)) {
+            $loader->load('versioning.php');
+        }
+
         if (class_exists(\PhpParser\ParserFactory::class)) {
             $loader->load('upgrade.php');
         }
@@ -367,6 +383,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->setParameter('api_platform.title', $config['title']);
         $container->setParameter('api_platform.description', $config['description']);
         $container->setParameter('api_platform.version', $config['version']);
+        $container->setParameter('api_platform.versioning.header', $config['versioning']['header']);
         $container->setParameter('api_platform.show_webby', $config['show_webby']);
         $container->setParameter('api_platform.url_generation_strategy', $config['defaults']['url_generation_strategy'] ?? UrlGeneratorInterface::ABS_PATH);
         $container->setParameter('api_platform.exception_to_status', $config['exception_to_status']);

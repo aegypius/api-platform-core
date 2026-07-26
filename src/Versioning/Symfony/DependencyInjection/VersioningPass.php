@@ -51,9 +51,21 @@ final class VersioningPass implements CompilerPassInterface
             return;
         }
 
+        $mutatorIds = array_keys($container->findTaggedServiceIds(self::MUTATOR_TAG));
+
+        // No mutators: stay inert. Remove the request/response hooks so API
+        // responses are byte-for-byte unchanged (no version headers, no Vary,
+        // no context injection).
+        if (!$mutatorIds) {
+            $container->removeDefinition('api_platform.versioning.serializer.context_builder');
+            $container->removeDefinition('api_platform.versioning.event_listener.add_headers');
+
+            return;
+        }
+
         $classes = [];
         $locatorMap = [];
-        foreach (array_keys($container->findTaggedServiceIds(self::MUTATOR_TAG)) as $id) {
+        foreach ($mutatorIds as $id) {
             $class = $container->getDefinition($id)->getClass() ?? $id;
             $classes[] = $class;
             $locatorMap[$class] = new Reference($id);
