@@ -81,17 +81,22 @@ final class ResponseMutator
             if (!\array_key_exists($mutation->from, $data)) {
                 return $data;
             }
+            // Compute before unsetting so a method-level rename still sees the
+            // full item array (including the property being renamed).
             $value = $data[$mutation->from];
-            unset($data[$mutation->from]);
-            $data[$mutation->to] = null === $bound->method
+            $renamed = null === $bound->method
                 ? $value
                 : $this->invoke($bound, $value, $data, $context);
+            unset($data[$mutation->from]);
+            $data[$mutation->to] = $renamed;
 
             return $data;
         }
 
         if ($mutation instanceof ChangeType) {
-            if (\array_key_exists($mutation->property, $data)) {
+            // Class-level ChangeType is a documentation-only delta: the value is
+            // already valid for both types, so the response is left untouched.
+            if (null !== $bound->method && \array_key_exists($mutation->property, $data)) {
                 $data[$mutation->property] = $this->invoke($bound, $data[$mutation->property], $data, $context);
             }
 

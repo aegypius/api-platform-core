@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\Tests\State;
 
+use ApiPlatform\Versioning\Attributes\ChangeType;
 use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\Restore;
@@ -92,6 +93,40 @@ final class ResponseMutatorTest extends TestCase
     {
         $chain = [new BoundMutation(new Restore(property: 'legacyFlag', value: 0), 'X')];
         $this->assertSame(['a' => 1, 'legacyFlag' => 0], $this->mutator()->mutate(['a' => 1], $chain, []));
+    }
+
+    public function testMethodRenameSeesFullDataIncludingRenamedKey(): void
+    {
+        $spy = new class {
+            /** @var array<string, mixed> */
+            public array $seenData = [];
+
+            /**
+             * @param array<string, mixed> $data
+             * @param array<string, mixed> $context
+             */
+            public function rename(mixed $value, array $data, array $context): string
+            {
+                $this->seenData = $data;
+
+                return strtoupper((string) $value);
+            }
+        };
+
+        $mutator = new ResponseMutator(static fn (string $class): object => $spy);
+        $chain = [new BoundMutation(new Rename(from: 'title', to: 'name'), $spy::class, 'rename')];
+
+        $result = $mutator->mutate(['title' => 'foo', 'other' => 1], $chain, []);
+
+        $this->assertSame(['other' => 1, 'name' => 'FOO'], $result);
+        $this->assertArrayHasKey('title', $spy->seenData, 'method must see the property being renamed');
+        $this->assertSame('foo', $spy->seenData['title']);
+    }
+
+    public function testClassLevelChangeTypeIsDocOnlyAndLeavesValue(): void
+    {
+        $chain = [new BoundMutation(new ChangeType(property: 'active', from: 'boolean', to: 'integer'), 'X')];
+        $this->assertSame(['active' => true], $this->mutator()->mutate(['active' => true], $chain, []));
     }
 
     public function testContextIsPassedToBoundMethod(): void

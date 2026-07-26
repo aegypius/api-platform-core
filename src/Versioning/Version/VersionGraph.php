@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Versioning\Version;
 
 use ApiPlatform\Versioning\Exception\InvalidVersionGraphException;
+use ApiPlatform\Versioning\Exception\OutOfRangeVersionException;
 
 /**
  * The global version line, derived from mutator downgrade edges.
@@ -154,7 +155,7 @@ final class VersionGraph
     {
         $targetIndex = array_search($target, $this->versions, true);
         if (false === $targetIndex || $targetIndex < $this->headIndex) {
-            throw new \InvalidArgumentException(\sprintf('Version "%s" is not requestable.', $target));
+            throw new OutOfRangeVersionException(\sprintf('Version "%s" is not requestable.', $target));
         }
 
         $steps = [];

@@ -55,8 +55,8 @@ final class MutatorMetadataFactory
             $mutations = [...$classMutations, ...$methodMutations];
 
             foreach ($bindings as $binding) {
-                $steps[VersionStep::class.$binding->from.'>'.$binding->to] ??= new VersionStep($binding->from, $binding->to);
                 $key = MutatorRegistry::key($binding->from, $binding->to);
+                $steps[$key] ??= new VersionStep($binding->from, $binding->to);
                 foreach ($mutations as $mutation) {
                     $index[$binding->resource][$key][] = $mutation;
                 }

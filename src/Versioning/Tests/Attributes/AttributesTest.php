@@ -48,7 +48,7 @@ final class AttributesTest extends TestCase
         yield 'VersionMutator is class + repeatable' => [VersionMutator::class, \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE];
         yield 'Remove is class-only + repeatable' => [Remove::class, \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE];
         yield 'Rename is class or method + repeatable' => [Rename::class, \Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE];
-        yield 'ChangeType is method-only + repeatable' => [ChangeType::class, \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE];
+        yield 'ChangeType is class or method + repeatable' => [ChangeType::class, \Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE];
         yield 'Restore is class or method + repeatable' => [Restore::class, \Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE];
     }
 

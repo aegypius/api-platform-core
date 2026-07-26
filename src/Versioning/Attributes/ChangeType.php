@@ -16,12 +16,13 @@ namespace ApiPlatform\Versioning\Attributes;
 /**
  * Declares that a property's type differs between head and the older version.
  *
- * Method-only: the annotated method converts the value; the "from"/"to" types
- * feed the documentation delta.
+ * On a class it is a documentation-only delta (the value is already valid for
+ * both types). On a method the annotated method converts the value; either way
+ * the "from"/"to" types feed the documentation delta.
  *
  * @experimental
  */
-#[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
+#[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final class ChangeType implements VersionMutation
 {
     /**
