@@ -11,8 +11,12 @@
 
 use ApiPlatform\Versioning\Metadata\MutatorMetadataFactory;
 use ApiPlatform\Versioning\Metadata\MutatorRegistry;
+use ApiPlatform\Versioning\OpenApi\ChangelogFactory;
+use ApiPlatform\Versioning\OpenApi\DocumentMutator;
 use ApiPlatform\Versioning\OpenApi\OverlayFactory;
 use ApiPlatform\Versioning\OpenApi\SchemaMutator;
+use ApiPlatform\Versioning\OpenApi\SchemaNameResolverInterface;
+use ApiPlatform\Versioning\OpenApi\ShortNameSchemaNameResolver;
 use ApiPlatform\Versioning\State\DowngradeChainResolver;
 use ApiPlatform\Versioning\State\HeaderVersionResolver;
 use ApiPlatform\Versioning\State\ResponseMutator;
@@ -53,6 +57,24 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set('api_platform.versioning.schema_mutator', SchemaMutator::class);
     $services->set('api_platform.versioning.overlay_factory', OverlayFactory::class);
+
+    $services->set('api_platform.versioning.schema_name_resolver', ShortNameSchemaNameResolver::class);
+    $services->alias(SchemaNameResolverInterface::class, 'api_platform.versioning.schema_name_resolver');
+
+    $services->set('api_platform.versioning.document_mutator', DocumentMutator::class)
+        ->args([
+            service('api_platform.versioning.graph'),
+            service('api_platform.versioning.registry'),
+            service('api_platform.versioning.chain_resolver'),
+            service('api_platform.versioning.schema_mutator'),
+            service('api_platform.versioning.schema_name_resolver'),
+        ]);
+
+    $services->set('api_platform.versioning.changelog_factory', ChangelogFactory::class)
+        ->args([
+            service('api_platform.versioning.graph'),
+            service('api_platform.versioning.registry'),
+        ]);
 
     $services->set('api_platform.versioning.headers_factory', VersionHeadersFactory::class)
         ->args([service('api_platform.versioning.graph')]);
