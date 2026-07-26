@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\Metadata;
 
-use ApiPlatform\Versioning\Attributes\VersionMutation;
+use ApiPlatform\Versioning\Attributes\VersionMutationInterface;
 
 /**
  * A single mutation resolved from a mutator class, with the mutator class it
@@ -27,7 +27,7 @@ final class BoundMutation
      * @param class-string $mutatorClass
      */
     public function __construct(
-        public readonly VersionMutation $mutation,
+        public readonly VersionMutationInterface $mutation,
         public readonly string $mutatorClass,
         public readonly ?string $method = null,
     ) {

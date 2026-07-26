@@ -22,7 +22,7 @@ namespace ApiPlatform\Versioning\Attributes;
  * @experimental
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
-final class Restore implements VersionMutation
+final class Restore implements VersionMutationInterface
 {
     /**
      * @param string $property the property to re-add

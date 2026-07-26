@@ -19,6 +19,6 @@ namespace ApiPlatform\Versioning\Attributes;
  *
  * @experimental
  */
-interface VersionMutation
+interface VersionMutationInterface
 {
 }

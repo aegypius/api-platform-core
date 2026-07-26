@@ -17,7 +17,7 @@ use ApiPlatform\Versioning\Attributes\ChangeType;
 use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\Restore;
-use ApiPlatform\Versioning\Attributes\VersionMutation;
+use ApiPlatform\Versioning\Attributes\VersionMutationInterface;
 use ApiPlatform\Versioning\Metadata\MutatorRegistry;
 use ApiPlatform\Versioning\Util\ShortName;
 use ApiPlatform\Versioning\Version\VersionGraph;
@@ -66,7 +66,7 @@ final class ChangelogFactory
         return $entries;
     }
 
-    private function describe(string $resource, VersionMutation $mutation): string
+    private function describe(string $resource, VersionMutationInterface $mutation): string
     {
         $short = ShortName::of($resource);
 

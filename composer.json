@@ -104,7 +104,8 @@
         "api-platform/serializer": "self.version",
         "api-platform/state": "self.version",
         "api-platform/symfony": "self.version",
-        "api-platform/validator": "self.version"
+        "api-platform/validator": "self.version",
+        "api-platform/versioning": "self.version"
     },
     "require": {
         "php": ">=8.2",

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\Metadata;
 
-use ApiPlatform\Versioning\Attributes\VersionMutation;
+use ApiPlatform\Versioning\Attributes\VersionMutationInterface;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 
 /**
@@ -74,7 +74,7 @@ final class MutatorMetadataFactory
     {
         $mutations = [];
         foreach ($reflection->getAttributes() as $attribute) {
-            if (is_a($attribute->getName(), VersionMutation::class, true)) {
+            if (is_a($attribute->getName(), VersionMutationInterface::class, true)) {
                 $mutations[] = new BoundMutation($attribute->newInstance(), $class);
             }
         }
@@ -93,7 +93,7 @@ final class MutatorMetadataFactory
         $mutations = [];
         foreach ($reflection->getMethods() as $method) {
             foreach ($method->getAttributes() as $attribute) {
-                if (is_a($attribute->getName(), VersionMutation::class, true)) {
+                if (is_a($attribute->getName(), VersionMutationInterface::class, true)) {
                     $mutations[] = new BoundMutation($attribute->newInstance(), $class, $method->getName());
                 }
             }

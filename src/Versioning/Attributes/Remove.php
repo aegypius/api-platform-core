@@ -21,7 +21,7 @@ namespace ApiPlatform\Versioning\Attributes;
  * @experimental
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
-final class Remove implements VersionMutation
+final class Remove implements VersionMutationInterface
 {
     public function __construct(public readonly string $property)
     {

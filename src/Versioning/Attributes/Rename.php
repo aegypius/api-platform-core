@@ -22,7 +22,7 @@ namespace ApiPlatform\Versioning\Attributes;
  * @experimental
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
-final class Rename implements VersionMutation
+final class Rename implements VersionMutationInterface
 {
     /**
      * @param string $from the head property key

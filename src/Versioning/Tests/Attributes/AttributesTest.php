@@ -17,7 +17,7 @@ use ApiPlatform\Versioning\Attributes\ChangeType;
 use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\Restore;
-use ApiPlatform\Versioning\Attributes\VersionMutation;
+use ApiPlatform\Versioning\Attributes\VersionMutationInterface;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -33,10 +33,10 @@ final class AttributesTest extends TestCase
 
     public function testMutationsAreTaggedAsVersionMutation(): void
     {
-        $this->assertInstanceOf(VersionMutation::class, new Remove('discount'));
-        $this->assertInstanceOf(VersionMutation::class, new Rename(from: 'title', to: 'name'));
-        $this->assertInstanceOf(VersionMutation::class, new ChangeType(property: 'active', from: 'boolean', to: 'integer'));
-        $this->assertInstanceOf(VersionMutation::class, new Restore(property: 'legacy', value: 0));
+        $this->assertInstanceOf(VersionMutationInterface::class, new Remove('discount'));
+        $this->assertInstanceOf(VersionMutationInterface::class, new Rename(from: 'title', to: 'name'));
+        $this->assertInstanceOf(VersionMutationInterface::class, new ChangeType(property: 'active', from: 'boolean', to: 'integer'));
+        $this->assertInstanceOf(VersionMutationInterface::class, new Restore(property: 'legacy', value: 0));
     }
 
     /**

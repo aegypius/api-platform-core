@@ -23,7 +23,7 @@ namespace ApiPlatform\Versioning\Attributes;
  * @experimental
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
-final class ChangeType implements VersionMutation
+final class ChangeType implements VersionMutationInterface
 {
     /**
      * @param string $property the property whose type changes
