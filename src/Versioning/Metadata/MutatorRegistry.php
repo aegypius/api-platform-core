@@ -13,23 +13,21 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\Metadata;
 
-use ApiPlatform\Versioning\Version\VersionStep;
-
 /**
  * Immutable index of the mutations declared across all mutator classes, keyed
- * by resource and downgrade step.
+ * by resource and by the version each mutator produces ("for").
  *
  * @experimental
  */
 final class MutatorRegistry
 {
     /**
-     * @param array<class-string, array<string, list<BoundMutation>>> $mutations resource => "from>to" => mutations
-     * @param list<VersionStep>                                       $steps     distinct downgrade edges
+     * @param array<class-string, array<string, list<BoundMutation>>> $mutations resource => for-version => mutations
+     * @param list<string>                                            $forVersions distinct versions produced by mutators
      */
     public function __construct(
         private readonly array $mutations,
-        private readonly array $steps,
+        private readonly array $forVersions,
     ) {
     }
 
@@ -42,14 +40,14 @@ final class MutatorRegistry
     }
 
     /**
-     * Distinct downgrade edges across every resource; the source of the global
+     * The distinct versions produced by the mutators; the source of the global
      * version line.
      *
-     * @return list<VersionStep>
+     * @return list<string>
      */
-    public function getSteps(): array
+    public function getForVersions(): array
     {
-        return $this->steps;
+        return $this->forVersions;
     }
 
     /**
@@ -57,13 +55,8 @@ final class MutatorRegistry
      *
      * @return list<BoundMutation>
      */
-    public function getMutations(string $resource, string $from, string $to): array
+    public function getMutations(string $resource, string $for): array
     {
-        return $this->mutations[$resource][self::key($from, $to)] ?? [];
-    }
-
-    public static function key(string $from, string $to): string
-    {
-        return $from.'>'.$to;
+        return $this->mutations[$resource][$for] ?? [];
     }
 }

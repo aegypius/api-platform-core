@@ -42,7 +42,8 @@ final class DowngradeChainResolver
     {
         $chain = [];
         foreach ($this->graph->getStepsTo($target) as $step) {
-            foreach ($this->registry->getMutations($resource, $step->from, $step->to) as $mutation) {
+            // A step's mutations are the ones authored "for" its older side.
+            foreach ($this->registry->getMutations($resource, $step->to) as $mutation) {
                 $chain[] = $mutation;
             }
         }

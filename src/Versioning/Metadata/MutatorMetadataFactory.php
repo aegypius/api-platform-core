@@ -15,7 +15,6 @@ namespace ApiPlatform\Versioning\Metadata;
 
 use ApiPlatform\Versioning\Attributes\VersionMutation;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
-use ApiPlatform\Versioning\Version\VersionStep;
 
 /**
  * Builds a {@see MutatorRegistry} by reflecting mutator classes: it reads their
@@ -35,8 +34,8 @@ final class MutatorMetadataFactory
     {
         /** @var array<class-string, array<string, list<BoundMutation>>> $index */
         $index = [];
-        /** @var array<string, VersionStep> $steps */
-        $steps = [];
+        /** @var array<string, true> $forVersions */
+        $forVersions = [];
 
         foreach ($mutatorClasses as $class) {
             $reflection = new \ReflectionClass($class);
@@ -55,15 +54,14 @@ final class MutatorMetadataFactory
             $mutations = [...$classMutations, ...$methodMutations];
 
             foreach ($bindings as $binding) {
-                $key = MutatorRegistry::key($binding->from, $binding->to);
-                $steps[$key] ??= new VersionStep($binding->from, $binding->to);
+                $forVersions[$binding->for] = true;
                 foreach ($mutations as $mutation) {
-                    $index[$binding->resource][$key][] = $mutation;
+                    $index[$binding->resource][$binding->for][] = $mutation;
                 }
             }
         }
 
-        return new MutatorRegistry($index, array_values($steps));
+        return new MutatorRegistry($index, array_keys($forVersions));
     }
 
     /**

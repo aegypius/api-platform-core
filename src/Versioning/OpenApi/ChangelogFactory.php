@@ -50,7 +50,9 @@ final class ChangelogFactory
 
             $changes = [];
             foreach ($this->registry->getResources() as $resource) {
-                foreach ($this->registry->getMutations($resource, $from, $to) as $bound) {
+                // The step from $from down to $to is described by the mutations
+                // authored "for" $to (the older side).
+                foreach ($this->registry->getMutations($resource, $to) as $bound) {
                     $changes[] = $this->describe($resource, $bound->mutation);
                 }
             }
