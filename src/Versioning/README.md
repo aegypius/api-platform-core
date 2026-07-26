@@ -58,19 +58,19 @@ use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 
-// Pure-declarative: what the resource looks like for 1.0.0.
-#[VersionMutator(resource: Book::class, for: '1.0.0')]
-#[Remove('discount')]              // "discount" did not exist in 1.0.0
-#[Rename(from: 'title', to: 'name')] // 1.0.0 served "name"
-final class BookFor1
+// Pure-declarative: what the resource looks like for 2.0.0.
+#[VersionMutator(resource: Book::class, for: '2.0.0')]
+#[Remove('discount')]              // "discount" did not exist in 2.0.0
+#[Rename(from: 'title', to: 'name')] // 2.0.0 served "name"
+final class BookFor2
 {
 }
 ```
 
 ```php
-// Needs value logic: what the resource looks like for 2.0.0.
-#[VersionMutator(resource: Book::class, for: '2.0.0')]
-final class BookFor2
+// Needs value logic: what the resource looks like for 1.0.0.
+#[VersionMutator(resource: Book::class, for: '1.0.0')]
+final class BookFor1
 {
     // Rename + reshape: the method receives the bound property value, the full
     // item array, and the context (resource, operation, fromVersion = head,
@@ -82,7 +82,7 @@ final class BookFor2
         return (new \DateTimeImmutable((string) $value))->format('Y-m-d\TH:i:s');
     }
 
-    // Type change: head serves a boolean, 2.0.0 served 0/1.
+    // Type change: head serves a boolean, 1.0.0 served 0/1.
     #[ChangeType(property: 'available', from: 'boolean', to: 'integer')]
     public function downgradeAvailable(mixed $value, array $data, array $context): int
     {
