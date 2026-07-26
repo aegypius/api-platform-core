@@ -113,7 +113,23 @@ final class ResponseMutatorTest extends TestCase
             }
         };
 
-        $mutator = new ResponseMutator(static fn (string $class): object => $spy);
+        $container = new class($spy) implements \Psr\Container\ContainerInterface {
+            public function __construct(private readonly object $spy)
+            {
+            }
+
+            public function get(string $id): object
+            {
+                return $this->spy;
+            }
+
+            public function has(string $id): bool
+            {
+                return true;
+            }
+        };
+
+        $mutator = new ResponseMutator($container);
         $chain = [new BoundMutation(new Rename(from: 'title', to: 'name'), $spy::class, 'rename')];
 
         $result = $mutator->mutate(['title' => 'foo', 'other' => 1], $chain, []);

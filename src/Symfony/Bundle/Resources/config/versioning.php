@@ -1,0 +1,81 @@
+<?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+use ApiPlatform\Versioning\Metadata\MutatorMetadataFactory;
+use ApiPlatform\Versioning\Metadata\MutatorRegistry;
+use ApiPlatform\Versioning\OpenApi\OverlayFactory;
+use ApiPlatform\Versioning\OpenApi\SchemaMutator;
+use ApiPlatform\Versioning\State\DowngradeChainResolver;
+use ApiPlatform\Versioning\State\HeaderVersionResolver;
+use ApiPlatform\Versioning\State\ResponseMutator;
+use ApiPlatform\Versioning\State\VersionHeadersFactory;
+use ApiPlatform\Versioning\State\VersionNegotiator;
+use ApiPlatform\Versioning\State\VersionResolverInterface;
+use ApiPlatform\Versioning\Symfony\EventListener\AddVersionHeadersListener;
+use ApiPlatform\Versioning\Symfony\State\VersionSerializerContextBuilder;
+use ApiPlatform\Versioning\Version\VersionGraph;
+use ApiPlatform\Versioning\Version\VersionGraphFactory;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+
+return static function (ContainerConfigurator $container): void {
+    $services = $container->services();
+
+    $services->set('api_platform.versioning.metadata_factory', MutatorMetadataFactory::class);
+
+    // The mutator class list (argument 0) is populated by VersioningPass from
+    // the tagged mutator services.
+    $services->set('api_platform.versioning.registry', MutatorRegistry::class)
+        ->factory([service('api_platform.versioning.metadata_factory'), 'create'])
+        ->args([[]]);
+
+    $services->set('api_platform.versioning.graph_factory', VersionGraphFactory::class);
+
+    $services->set('api_platform.versioning.graph', VersionGraph::class)
+        ->factory([service('api_platform.versioning.graph_factory'), 'create'])
+        ->args([service('api_platform.versioning.registry'), '%api_platform.version%']);
+
+    $services->set('api_platform.versioning.chain_resolver', DowngradeChainResolver::class)
+        ->args([service('api_platform.versioning.graph'), service('api_platform.versioning.registry')]);
+
+    // The mutator service locator (argument 0) is populated by VersioningPass.
+    $services->set('api_platform.versioning.response_mutator', ResponseMutator::class)
+        ->args([null]);
+
+    $services->set('api_platform.versioning.schema_mutator', SchemaMutator::class);
+    $services->set('api_platform.versioning.overlay_factory', OverlayFactory::class);
+
+    $services->set('api_platform.versioning.headers_factory', VersionHeadersFactory::class)
+        ->args([service('api_platform.versioning.graph')]);
+
+    $services->set('api_platform.versioning.resolver', HeaderVersionResolver::class)
+        ->args(['%api_platform.versioning.header%']);
+    $services->alias(VersionResolverInterface::class, 'api_platform.versioning.resolver');
+
+    $services->set('api_platform.versioning.negotiator', VersionNegotiator::class);
+
+    $services->set('api_platform.versioning.serializer.context_builder', VersionSerializerContextBuilder::class)
+        ->decorate('api_platform.serializer.context_builder')
+        ->args([
+            service('api_platform.versioning.serializer.context_builder.inner'),
+            service('api_platform.versioning.resolver'),
+            service('api_platform.versioning.negotiator'),
+            service('api_platform.versioning.graph'),
+        ]);
+
+    $services->set('api_platform.versioning.event_listener.add_headers', AddVersionHeadersListener::class)
+        ->args([
+            service('api_platform.versioning.headers_factory'),
+            service('api_platform.versioning.resolver'),
+        ])
+        ->tag('kernel.event_listener', ['event' => 'kernel.response', 'method' => 'onKernelResponse']);
+};

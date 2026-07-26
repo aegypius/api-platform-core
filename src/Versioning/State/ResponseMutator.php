@@ -18,6 +18,7 @@ use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\Restore;
 use ApiPlatform\Versioning\Metadata\BoundMutation;
+use Psr\Container\ContainerInterface;
 
 /**
  * Applies an ordered downgrade chain to a single normalized item array.
@@ -30,19 +31,17 @@ use ApiPlatform\Versioning\Metadata\BoundMutation;
  */
 final class ResponseMutator
 {
-    /** @var callable(class-string): object */
-    private $locator;
-
     /** @var array<class-string, object> */
     private array $instances = [];
 
     /**
-     * @param (callable(class-string): object)|null $locator resolves a mutator
-     *                                                        class to an instance
+     * @param ContainerInterface|null $mutators locates a mutator class' instance
+     *                                          (e.g. a Symfony service locator);
+     *                                          when absent the class is simply
+     *                                          instantiated with `new`
      */
-    public function __construct(?callable $locator = null)
+    public function __construct(private readonly ?ContainerInterface $mutators = null)
     {
-        $this->locator = $locator ?? static fn (string $class): object => new $class();
     }
 
     /**
@@ -120,8 +119,21 @@ final class ResponseMutator
      */
     private function invoke(BoundMutation $bound, mixed $value, array $data, array $context): mixed
     {
-        $instance = $this->instances[$bound->mutatorClass] ??= ($this->locator)($bound->mutatorClass);
+        $instance = $this->instances[$bound->mutatorClass] ??= $this->instantiate($bound->mutatorClass);
 
         return $instance->{$bound->method}($value, $data, $context);
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function instantiate(string $class): object
+    {
+        if ($this->mutators?->has($class)) {
+            /** @var object */
+            return $this->mutators->get($class);
+        }
+
+        return new $class();
     }
 }
