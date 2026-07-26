@@ -58,6 +58,7 @@ final class VersioningPass implements CompilerPassInterface
         // no context injection).
         if (!$mutatorIds) {
             $container->removeDefinition('api_platform.versioning.serializer.context_builder');
+            $container->removeDefinition('api_platform.versioning.event_listener.negotiate');
             $container->removeDefinition('api_platform.versioning.event_listener.add_headers');
 
             return;

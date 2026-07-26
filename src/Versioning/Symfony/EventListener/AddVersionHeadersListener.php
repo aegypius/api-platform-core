@@ -15,7 +15,6 @@ namespace ApiPlatform\Versioning\Symfony\EventListener;
 
 use ApiPlatform\Versioning\State\VersionHeadersFactory;
 use ApiPlatform\Versioning\State\VersionResolverInterface;
-use ApiPlatform\Versioning\Symfony\State\VersionSerializerContextBuilder;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 /**
@@ -34,7 +33,7 @@ final class AddVersionHeadersListener
 
     public function onKernelResponse(ResponseEvent $event): void
     {
-        $version = $event->getRequest()->attributes->get(VersionSerializerContextBuilder::REQUEST_ATTRIBUTE);
+        $version = $event->getRequest()->attributes->get(NegotiateVersionListener::REQUEST_ATTRIBUTE);
         if (!\is_string($version)) {
             return;
         }

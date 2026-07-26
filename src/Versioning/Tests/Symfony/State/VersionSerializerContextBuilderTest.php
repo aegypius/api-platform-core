@@ -15,18 +15,14 @@ namespace ApiPlatform\Versioning\Tests\Symfony\State;
 
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use ApiPlatform\Versioning\Serializer\VersionMutationNormalizer;
-use ApiPlatform\Versioning\State\VersionNegotiator;
-use ApiPlatform\Versioning\State\VersionResolverInterface;
+use ApiPlatform\Versioning\Symfony\EventListener\NegotiateVersionListener;
 use ApiPlatform\Versioning\Symfony\State\VersionSerializerContextBuilder;
-use ApiPlatform\Versioning\Version\VersionGraph;
-use ApiPlatform\Versioning\Version\VersionStep;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 final class VersionSerializerContextBuilderTest extends TestCase
 {
-    private function builder(?string $resolved): VersionSerializerContextBuilder
+    private function builder(): VersionSerializerContextBuilder
     {
         $inner = new class implements SerializerContextBuilderInterface {
             public function createFromRequest(Request $request, bool $normalization, ?array $extractedAttributes = null): array
@@ -35,58 +31,34 @@ final class VersionSerializerContextBuilderTest extends TestCase
             }
         };
 
-        $resolver = new class($resolved) implements VersionResolverInterface {
-            public function __construct(private readonly ?string $resolved)
-            {
-            }
-
-            public function resolve(Request $request): ?string
-            {
-                return $this->resolved;
-            }
-
-            public function getVary(): ?string
-            {
-                return 'Accept-Version';
-            }
-        };
-
-        $graph = VersionGraph::fromSteps([
-            new VersionStep('cherry', 'banana'),
-            new VersionStep('banana', 'apple'),
-        ], 'cherry');
-
-        return new VersionSerializerContextBuilder($inner, $resolver, new VersionNegotiator(), $graph);
+        return new VersionSerializerContextBuilder($inner);
     }
 
-    public function testInjectsNegotiatedVersionAndStashesItOnTheRequest(): void
+    private function requestWithVersion(string $version): Request
     {
         $request = new Request();
-        $context = $this->builder('apple')->createFromRequest($request, true);
+        $request->attributes->set(NegotiateVersionListener::REQUEST_ATTRIBUTE, $version);
+
+        return $request;
+    }
+
+    public function testExposesNegotiatedVersionToTheNormalizer(): void
+    {
+        $context = $this->builder()->createFromRequest($this->requestWithVersion('apple'), true);
 
         $this->assertSame('apple', $context[VersionMutationNormalizer::VERSION_CONTEXT_KEY]);
         $this->assertSame('book:read', $context['groups'][0]);
-        $this->assertSame('apple', $request->attributes->get(VersionSerializerContextBuilder::REQUEST_ATTRIBUTE));
-    }
-
-    public function testNoPreferenceInjectsHead(): void
-    {
-        $context = $this->builder(null)->createFromRequest(new Request(), true);
-        $this->assertSame('cherry', $context[VersionMutationNormalizer::VERSION_CONTEXT_KEY]);
     }
 
     public function testWriteContextIsUntouched(): void
     {
-        $request = new Request();
-        $context = $this->builder('apple')->createFromRequest($request, false);
-
+        $context = $this->builder()->createFromRequest($this->requestWithVersion('apple'), false);
         $this->assertArrayNotHasKey(VersionMutationNormalizer::VERSION_CONTEXT_KEY, $context);
-        $this->assertNull($request->attributes->get(VersionSerializerContextBuilder::REQUEST_ATTRIBUTE));
     }
 
-    public function testUnknownVersionBecomesBadRequest(): void
+    public function testNoNegotiatedVersionLeavesContextUnchanged(): void
     {
-        $this->expectException(BadRequestHttpException::class);
-        $this->builder('banana-split')->createFromRequest(new Request(), true);
+        $context = $this->builder()->createFromRequest(new Request(), true);
+        $this->assertArrayNotHasKey(VersionMutationNormalizer::VERSION_CONTEXT_KEY, $context);
     }
 }

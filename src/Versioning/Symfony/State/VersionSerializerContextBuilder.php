@@ -14,56 +14,34 @@ declare(strict_types=1);
 namespace ApiPlatform\Versioning\Symfony\State;
 
 use ApiPlatform\State\SerializerContextBuilderInterface;
-use ApiPlatform\Versioning\Exception\OutOfRangeVersionException;
 use ApiPlatform\Versioning\Serializer\VersionMutationNormalizer;
-use ApiPlatform\Versioning\State\VersionNegotiator;
-use ApiPlatform\Versioning\State\VersionResolverInterface;
-use ApiPlatform\Versioning\Version\VersionGraph;
+use ApiPlatform\Versioning\Symfony\EventListener\NegotiateVersionListener;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
- * Decorates the serializer context builder to negotiate the requested version
- * and expose it to the normalizer.
+ * Decorates the serializer context builder to expose the negotiated version
+ * (resolved by {@see NegotiateVersionListener}) to the normalizer.
  *
  * Only the normalization (read) side is versioned: versioning is a
  * backward-compatible response concern, so write contexts pass through
- * untouched. The negotiated version is also stashed on the request so the
- * response listener can advertise it.
+ * untouched.
  *
  * @experimental
  */
 final class VersionSerializerContextBuilder implements SerializerContextBuilderInterface
 {
-    /**
-     * Request attribute holding the negotiated version for the response listener.
-     */
-    public const REQUEST_ATTRIBUTE = '_api_platform_version';
-
-    public function __construct(
-        private readonly SerializerContextBuilderInterface $decorated,
-        private readonly VersionResolverInterface $resolver,
-        private readonly VersionNegotiator $negotiator,
-        private readonly VersionGraph $graph,
-    ) {
+    public function __construct(private readonly SerializerContextBuilderInterface $decorated)
+    {
     }
 
     public function createFromRequest(Request $request, bool $normalization, ?array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
 
-        if (!$normalization) {
-            return $context;
+        $version = $request->attributes->get(NegotiateVersionListener::REQUEST_ATTRIBUTE);
+        if ($normalization && \is_string($version)) {
+            $context[VersionMutationNormalizer::VERSION_CONTEXT_KEY] = $version;
         }
-
-        try {
-            $version = $this->negotiator->negotiate($this->resolver->resolve($request), $this->graph);
-        } catch (OutOfRangeVersionException $e) {
-            throw new BadRequestHttpException($e->getMessage(), $e);
-        }
-
-        $context[VersionMutationNormalizer::VERSION_CONTEXT_KEY] = $version;
-        $request->attributes->set(self::REQUEST_ATTRIBUTE, $version);
 
         return $context;
     }

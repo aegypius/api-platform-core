@@ -16,7 +16,7 @@ namespace ApiPlatform\Versioning\Tests\Symfony\EventListener;
 use ApiPlatform\Versioning\State\VersionHeadersFactory;
 use ApiPlatform\Versioning\State\VersionResolverInterface;
 use ApiPlatform\Versioning\Symfony\EventListener\AddVersionHeadersListener;
-use ApiPlatform\Versioning\Symfony\State\VersionSerializerContextBuilder;
+use ApiPlatform\Versioning\Symfony\EventListener\NegotiateVersionListener;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use ApiPlatform\Versioning\Version\VersionStep;
 use PHPUnit\Framework\TestCase;
@@ -59,7 +59,7 @@ final class AddVersionHeadersListenerTest extends TestCase
     public function testAddsDiscoverabilityAndVaryHeadersWhenVersionNegotiated(): void
     {
         $request = new Request();
-        $request->attributes->set(VersionSerializerContextBuilder::REQUEST_ATTRIBUTE, 'banana');
+        $request->attributes->set(NegotiateVersionListener::REQUEST_ATTRIBUTE, 'banana');
 
         $event = $this->event($request);
         $this->listener()->onKernelResponse($event);

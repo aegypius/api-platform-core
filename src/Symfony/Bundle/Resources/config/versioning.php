@@ -24,6 +24,7 @@ use ApiPlatform\Versioning\State\VersionHeadersFactory;
 use ApiPlatform\Versioning\State\VersionNegotiator;
 use ApiPlatform\Versioning\State\VersionResolverInterface;
 use ApiPlatform\Versioning\Symfony\EventListener\AddVersionHeadersListener;
+use ApiPlatform\Versioning\Symfony\EventListener\NegotiateVersionListener;
 use ApiPlatform\Versioning\Symfony\State\VersionSerializerContextBuilder;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use ApiPlatform\Versioning\Version\VersionGraphFactory;
@@ -90,10 +91,15 @@ return static function (ContainerConfigurator $container): void {
         ->decorate('api_platform.serializer.context_builder')
         ->args([
             service('api_platform.versioning.serializer.context_builder.inner'),
+        ]);
+
+    $services->set('api_platform.versioning.event_listener.negotiate', NegotiateVersionListener::class)
+        ->args([
             service('api_platform.versioning.resolver'),
             service('api_platform.versioning.negotiator'),
             service('api_platform.versioning.graph'),
-        ]);
+        ])
+        ->tag('kernel.event_listener', ['event' => 'kernel.request', 'method' => 'onKernelRequest']);
 
     $services->set('api_platform.versioning.event_listener.add_headers', AddVersionHeadersListener::class)
         ->args([

@@ -16,7 +16,11 @@ namespace ApiPlatform\Versioning\Serializer;
 use ApiPlatform\Versioning\State\DowngradeChainResolver;
 use ApiPlatform\Versioning\State\ResponseMutator;
 use ApiPlatform\Versioning\Version\VersionGraph;
+use Symfony\Component\Serializer\Exception\BadMethodCallException;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Serializer\SerializerAwareInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Decorates the resource item normalizer to downgrade a single item to the
@@ -29,7 +33,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  *
  * @experimental
  */
-final class VersionMutationNormalizer implements NormalizerInterface
+final class VersionMutationNormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
 {
     /**
      * Serializer context key holding the negotiated target version.
@@ -79,5 +83,31 @@ final class VersionMutationNormalizer implements NormalizerInterface
     public function getSupportedTypes(?string $format): array
     {
         return $this->decorated->getSupportedTypes($format);
+    }
+
+    // The decorated item normalizer is also a denormalizer and serializer-aware.
+    // Forward those so decoration stays transparent (writes and the serializer
+    // wiring are untouched; versioning only reshapes read output).
+
+    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
+    {
+        if (!$this->decorated instanceof DenormalizerInterface) {
+            throw new BadMethodCallException(\sprintf('The decorated normalizer "%s" is not a denormalizer.', $this->decorated::class));
+        }
+
+        return $this->decorated->denormalize($data, $type, $format, $context);
+    }
+
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
+    {
+        return $this->decorated instanceof DenormalizerInterface
+            && $this->decorated->supportsDenormalization($data, $type, $format, $context);
+    }
+
+    public function setSerializer(SerializerInterface $serializer): void
+    {
+        if ($this->decorated instanceof SerializerAwareInterface) {
+            $this->decorated->setSerializer($serializer);
+        }
     }
 }
