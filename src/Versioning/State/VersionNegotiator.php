@@ -42,10 +42,6 @@ final class VersionNegotiator
             return $requested;
         }
 
-        throw new OutOfRangeVersionException(\sprintf(
-            'Version "%s" is not available. Requestable versions: %s.',
-            $requested,
-            implode(', ', $graph->getRequestableVersions()),
-        ));
+        throw OutOfRangeVersionException::notRequestable($requested, $graph->getRequestableVersions());
     }
 }

@@ -20,4 +20,16 @@ namespace ApiPlatform\Versioning\Exception;
  */
 final class OutOfRangeVersionException extends \InvalidArgumentException implements ExceptionInterface
 {
+    /**
+     * @param list<string> $requestableVersions
+     */
+    public static function notRequestable(string $version, array $requestableVersions): self
+    {
+        return new self(\sprintf(
+            'Version "%s" is not available. Requestable versions: %s.',
+            $version,
+            implode(', ', $requestableVersions),
+        ));
+    }
 }
+

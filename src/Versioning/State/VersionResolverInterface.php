@@ -29,9 +29,9 @@ interface VersionResolverInterface
     public function resolve(Request $request): ?string;
 
     /**
-     * The request header this resolver reads, to be added to the response
-     * "Vary" header so shared caches key on it. Null when the strategy does not
-     * depend on a header.
+     * The request header, if any, that responses must Vary on so shared caches
+     * key on the version. Null when the strategy does not depend on a request
+     * header (for example a URL-segment strategy).
      */
     public function getVary(): ?string;
 }

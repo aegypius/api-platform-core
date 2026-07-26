@@ -155,7 +155,7 @@ final class VersionGraph
     {
         $targetIndex = array_search($target, $this->versions, true);
         if (false === $targetIndex || $targetIndex < $this->headIndex) {
-            throw new OutOfRangeVersionException(\sprintf('Version "%s" is not requestable.', $target));
+            throw OutOfRangeVersionException::notRequestable($target, $this->getRequestableVersions());
         }
 
         $steps = [];
