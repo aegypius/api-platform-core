@@ -15,8 +15,8 @@ namespace ApiPlatform\Versioning\Tests\State;
 
 use ApiPlatform\Versioning\Exception\OutOfRangeVersionException;
 use ApiPlatform\Versioning\State\VersionNegotiator;
+use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
 use ApiPlatform\Versioning\Version\VersionGraph;
-use ApiPlatform\Versioning\Version\VersionStep;
 use PHPUnit\Framework\TestCase;
 
 final class VersionNegotiatorTest extends TestCase
@@ -24,11 +24,8 @@ final class VersionNegotiatorTest extends TestCase
     private function graph(): VersionGraph
     {
         // date is above head cherry (inactive).
-        return VersionGraph::fromSteps([
-            new VersionStep('date', 'cherry'),
-            new VersionStep('cherry', 'banana'),
-            new VersionStep('banana', 'apple'),
-        ], 'cherry');
+        // 'date' is above head 'cherry' (inactive).
+        return VersionGraph::fromVersions(['date', 'banana', 'apple'], 'cherry', new FruitComparator());
     }
 
     public function testNoPreferenceServesHead(): void

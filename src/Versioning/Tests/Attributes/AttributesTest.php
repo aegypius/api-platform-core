@@ -26,10 +26,9 @@ final class AttributesTest extends TestCase
 {
     public function testVersionMutatorHoldsBinding(): void
     {
-        $m = new VersionMutator(resource: 'App\Book', from: 'cherry', to: 'banana');
+        $m = new VersionMutator(resource: 'App\Book', for: 'banana');
         $this->assertSame('App\Book', $m->resource);
-        $this->assertSame('cherry', $m->from);
-        $this->assertSame('banana', $m->to);
+        $this->assertSame('banana', $m->for);
     }
 
     public function testMutationsAreTaggedAsVersionMutation(): void

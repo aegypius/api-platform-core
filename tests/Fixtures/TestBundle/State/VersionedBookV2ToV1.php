@@ -22,7 +22,7 @@ use ApiPlatform\Versioning\Attributes\VersionMutator;
 /**
  * Downgrades VersionedBook from head "2.0.0" to "1.0.0".
  */
-#[VersionMutator(resource: VersionedBook::class, from: '2.0.0', to: '1.0.0')]
+#[VersionMutator(resource: VersionedBook::class, for: '1.0.0')]
 #[Remove('discount')]
 #[Rename(from: 'title', to: 'name')]
 final class VersionedBookV2ToV1

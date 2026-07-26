@@ -20,6 +20,7 @@ use ApiPlatform\Versioning\Tests\Fixtures\Book;
 use ApiPlatform\Versioning\Tests\Fixtures\BookBananaToApple;
 use ApiPlatform\Versioning\Tests\Fixtures\BookCherryToBanana;
 use ApiPlatform\Versioning\Tests\Fixtures\DropInternalNotes;
+use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use PHPUnit\Framework\TestCase;
 
@@ -35,7 +36,7 @@ final class SchemaMutatorTest extends TestCase
             BookBananaToApple::class,
             DropInternalNotes::class,
         ]);
-        $graph = VersionGraph::fromSteps($registry->getSteps(), 'cherry');
+        $graph = VersionGraph::fromVersions($registry->getForVersions(), 'cherry', new FruitComparator());
 
         return (new DowngradeChainResolver($graph, $registry))->resolve(Book::class, $target);
     }

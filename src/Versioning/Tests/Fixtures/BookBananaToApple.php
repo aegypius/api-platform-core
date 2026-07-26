@@ -17,7 +17,7 @@ use ApiPlatform\Versioning\Attributes\ChangeType;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 
-#[VersionMutator(resource: Book::class, from: 'banana', to: 'apple')]
+#[VersionMutator(resource: Book::class, for: 'apple')]
 final class BookBananaToApple
 {
     /**

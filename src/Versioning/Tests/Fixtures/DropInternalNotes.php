@@ -16,8 +16,8 @@ namespace ApiPlatform\Versioning\Tests\Fixtures;
 use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 
-#[VersionMutator(resource: Book::class, from: 'cherry', to: 'banana')]
-#[VersionMutator(resource: Review::class, from: 'cherry', to: 'banana')]
+#[VersionMutator(resource: Book::class, for: 'banana')]
+#[VersionMutator(resource: Review::class, for: 'banana')]
 #[Remove('internalNotes')]
 final class DropInternalNotes
 {

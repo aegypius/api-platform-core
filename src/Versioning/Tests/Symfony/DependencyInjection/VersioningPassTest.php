@@ -23,6 +23,8 @@ use ApiPlatform\Versioning\Tests\Fixtures\Book;
 use ApiPlatform\Versioning\Tests\Fixtures\BookBananaToApple;
 use ApiPlatform\Versioning\Tests\Fixtures\BookCherryToBanana;
 use ApiPlatform\Versioning\Tests\Fixtures\DropInternalNotes;
+use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
+use ApiPlatform\Versioning\Version\VersionComparatorInterface;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\FileLocator;
@@ -54,6 +56,10 @@ final class VersioningPassTest extends TestCase
         }
 
         (new PhpFileLoader($container, new FileLocator(self::CONFIG_DIR)))->load('versioning.php');
+
+        // Fixtures use opaque fruit tokens; order them with a custom comparator.
+        $container->register(FruitComparator::class, FruitComparator::class);
+        $container->setAlias(VersionComparatorInterface::class, FruitComparator::class);
 
         return $container;
     }

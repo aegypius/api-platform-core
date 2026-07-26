@@ -14,19 +14,16 @@ declare(strict_types=1);
 namespace ApiPlatform\Versioning\Tests\State;
 
 use ApiPlatform\Versioning\State\VersionHeadersFactory;
+use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
 use ApiPlatform\Versioning\Version\VersionGraph;
-use ApiPlatform\Versioning\Version\VersionStep;
 use PHPUnit\Framework\TestCase;
 
 final class VersionHeadersFactoryTest extends TestCase
 {
     private function factory(): VersionHeadersFactory
     {
-        $graph = VersionGraph::fromSteps([
-            new VersionStep('date', 'cherry'), // above head, inactive
-            new VersionStep('cherry', 'banana'),
-            new VersionStep('banana', 'apple'),
-        ], 'cherry');
+        // 'date' is above head 'cherry' (inactive).
+        $graph = VersionGraph::fromVersions(['date', 'banana', 'apple'], 'cherry', new FruitComparator());
 
         return new VersionHeadersFactory($graph);
     }

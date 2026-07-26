@@ -17,7 +17,7 @@ use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 
-#[VersionMutator(resource: Book::class, from: 'cherry', to: 'banana')]
+#[VersionMutator(resource: Book::class, for: 'banana')]
 #[Remove('discount')]
 #[Rename(from: 'title', to: 'name')]
 final class BookCherryToBanana

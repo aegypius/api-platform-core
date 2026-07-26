@@ -17,8 +17,8 @@ use ApiPlatform\Metadata\Exception\BadRequestException;
 use ApiPlatform\Versioning\State\VersionNegotiator;
 use ApiPlatform\Versioning\State\VersionResolverInterface;
 use ApiPlatform\Versioning\Symfony\EventListener\NegotiateVersionListener;
+use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
 use ApiPlatform\Versioning\Version\VersionGraph;
-use ApiPlatform\Versioning\Version\VersionStep;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -44,10 +44,7 @@ final class NegotiateVersionListenerTest extends TestCase
             }
         };
 
-        $graph = VersionGraph::fromSteps([
-            new VersionStep('cherry', 'banana'),
-            new VersionStep('banana', 'apple'),
-        ], 'cherry');
+        $graph = VersionGraph::fromVersions(['banana', 'apple'], 'cherry', new FruitComparator());
 
         return new NegotiateVersionListener($resolver, new VersionNegotiator(), $graph);
     }

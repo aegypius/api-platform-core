@@ -43,21 +43,17 @@ final class MutatorMetadataFactoryTest extends TestCase
         $this->assertSame([Book::class, Review::class], $resources);
     }
 
-    public function testDistinctStepsAreDeduplicated(): void
+    public function testDistinctForVersionsAreDeduplicated(): void
     {
-        $steps = array_map(
-            static fn ($s): array => [$s->from, $s->to],
-            $this->registry()->getSteps(),
-        );
-        // (cherry,banana) contributed by Book (twice: two classes) and Review.
-        $this->assertContains(['cherry', 'banana'], $steps);
-        $this->assertContains(['banana', 'apple'], $steps);
-        $this->assertCount(2, $steps);
+        $forVersions = $this->registry()->getForVersions();
+        sort($forVersions);
+        // "banana" contributed by Book (two classes) and Review; "apple" by Book.
+        $this->assertSame(['apple', 'banana'], $forVersions);
     }
 
     public function testClassLevelMutationsAreCollectedAcrossClasses(): void
     {
-        $mutations = $this->registry()->getMutations(Book::class, 'cherry', 'banana');
+        $mutations = $this->registry()->getMutations(Book::class, 'banana');
 
         $this->assertCount(3, $mutations);
         foreach ($mutations as $m) {
@@ -72,7 +68,7 @@ final class MutatorMetadataFactoryTest extends TestCase
 
     public function testRepeatableBindingAppliesMutationsToEachResource(): void
     {
-        $mutations = $this->registry()->getMutations(Review::class, 'cherry', 'banana');
+        $mutations = $this->registry()->getMutations(Review::class, 'banana');
         $this->assertCount(1, $mutations);
         $this->assertInstanceOf(Remove::class, $mutations[0]->mutation);
         $this->assertSame('internalNotes', $mutations[0]->mutation->property);
@@ -80,7 +76,7 @@ final class MutatorMetadataFactoryTest extends TestCase
 
     public function testMethodLevelMutationsBindTheMethodName(): void
     {
-        $mutations = $this->registry()->getMutations(Book::class, 'banana', 'apple');
+        $mutations = $this->registry()->getMutations(Book::class, 'apple');
         $this->assertCount(2, $mutations);
 
         $this->assertInstanceOf(Rename::class, $mutations[0]->mutation);
@@ -91,8 +87,8 @@ final class MutatorMetadataFactoryTest extends TestCase
         $this->assertSame('downgradeAvailable', $mutations[1]->method);
     }
 
-    public function testUnknownStepReturnsNoMutations(): void
+    public function testUnknownVersionReturnsNoMutations(): void
     {
-        $this->assertSame([], $this->registry()->getMutations(Book::class, 'apple', 'cherry'));
+        $this->assertSame([], $this->registry()->getMutations(Book::class, 'cherry'));
     }
 }

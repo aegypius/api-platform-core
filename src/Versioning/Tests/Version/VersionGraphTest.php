@@ -13,37 +13,35 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\Tests\Version;
 
-use ApiPlatform\Versioning\Exception\InvalidVersionGraphException;
+use ApiPlatform\Versioning\Exception\OutOfRangeVersionException;
+use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
+use ApiPlatform\Versioning\Version\SemverVersionComparator;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use ApiPlatform\Versioning\Version\VersionStep;
 use PHPUnit\Framework\TestCase;
 
 final class VersionGraphTest extends TestCase
 {
-    /**
-     * @param list<array{0: string, 1: string}> $edges
-     */
-    private static function graph(array $edges, string $head): VersionGraph
+    public function testOrderIsDerivedByTheComparatorNewestToOldest(): void
     {
-        return VersionGraph::fromSteps(
-            array_map(static fn (array $e): VersionStep => new VersionStep($e[0], $e[1]), $edges),
-            $head,
-        );
-    }
-
-    public function testLinearOrderIsDerivedFromEdgesNewestToOldest(): void
-    {
-        // opaque tokens: order comes only from the edges, not string compare.
-        $graph = self::graph([['cherry', 'banana'], ['banana', 'apple']], 'cherry');
+        // opaque tokens, ordered only by the pluggable comparator.
+        $graph = VersionGraph::fromVersions(['apple', 'banana'], 'cherry', new FruitComparator());
 
         $this->assertSame(['cherry', 'banana', 'apple'], $graph->getVersions());
         $this->assertSame('cherry', $graph->getHead());
     }
 
+    public function testDefaultSemverOrdering(): void
+    {
+        $graph = VersionGraph::fromVersions(['1.0.0', '2.0.0'], '3.0.0', new SemverVersionComparator());
+
+        $this->assertSame(['3.0.0', '2.0.0', '1.0.0'], $graph->getVersions());
+    }
+
     public function testHeadIsAMovablePointerAndAboveHeadIsNotRequestable(): void
     {
-        // 'date' exists above head 'cherry' (defined-but-inactive).
-        $graph = self::graph([['date', 'cherry'], ['cherry', 'banana'], ['banana', 'apple']], 'cherry');
+        // 'date' is above head 'cherry' (defined-but-inactive).
+        $graph = VersionGraph::fromVersions(['date', 'banana', 'apple'], 'cherry', new FruitComparator());
 
         $this->assertSame(['date', 'cherry', 'banana', 'apple'], $graph->getVersions());
         $this->assertSame(['cherry', 'banana', 'apple'], $graph->getRequestableVersions());
@@ -54,70 +52,38 @@ final class VersionGraphTest extends TestCase
 
     public function testStepsToReturnsHeadToTargetNewestFirst(): void
     {
-        $graph = self::graph([['cherry', 'banana'], ['banana', 'apple']], 'cherry');
+        $graph = VersionGraph::fromVersions(['banana', 'apple'], 'cherry', new FruitComparator());
 
-        $steps = $graph->getStepsTo('apple');
-        $this->assertSame(
-            [['cherry', 'banana'], ['banana', 'apple']],
-            array_map(static fn (VersionStep $s): array => [$s->from, $s->to], $steps),
+        $steps = array_map(
+            static fn (VersionStep $s): array => [$s->from, $s->to],
+            $graph->getStepsTo('apple'),
         );
+        $this->assertSame([['cherry', 'banana'], ['banana', 'apple']], $steps);
     }
 
     public function testStepsToHeadIsEmpty(): void
     {
-        $graph = self::graph([['cherry', 'banana']], 'cherry');
+        $graph = VersionGraph::fromVersions(['banana'], 'cherry', new FruitComparator());
         $this->assertSame([], $graph->getStepsTo('cherry'));
     }
 
     public function testStepsToUnknownOrAboveHeadThrows(): void
     {
-        $graph = self::graph([['date', 'cherry'], ['cherry', 'banana']], 'cherry');
-        $this->expectException(\InvalidArgumentException::class);
+        $graph = VersionGraph::fromVersions(['date', 'banana'], 'cherry', new FruitComparator());
+        $this->expectException(OutOfRangeVersionException::class);
         $graph->getStepsTo('date'); // above head, inactive
     }
 
-    public function testEmptyGraphHasOnlyHead(): void
+    public function testEmptyVersionsHasOnlyHead(): void
     {
-        $graph = VersionGraph::fromSteps([], 'apple');
+        $graph = VersionGraph::fromVersions([], 'apple', new FruitComparator());
         $this->assertSame(['apple'], $graph->getVersions());
         $this->assertSame(['apple'], $graph->getRequestableVersions());
     }
 
-    public function testDuplicateEdgesAreDeduplicated(): void
+    public function testHeadPresentAmongForValuesIsDeduplicated(): void
     {
-        // two resources contributing the same global edge.
-        $graph = self::graph([['cherry', 'banana'], ['cherry', 'banana']], 'cherry');
+        $graph = VersionGraph::fromVersions(['cherry', 'banana'], 'cherry', new FruitComparator());
         $this->assertSame(['cherry', 'banana'], $graph->getVersions());
-    }
-
-    public function testBranchIsRejected(): void
-    {
-        $this->expectException(InvalidVersionGraphException::class);
-        self::graph([['cherry', 'banana'], ['cherry', 'apple']], 'cherry');
-    }
-
-    public function testMergeIsRejected(): void
-    {
-        $this->expectException(InvalidVersionGraphException::class);
-        self::graph([['cherry', 'apple'], ['banana', 'apple']], 'cherry');
-    }
-
-    public function testCycleIsRejected(): void
-    {
-        $this->expectException(InvalidVersionGraphException::class);
-        self::graph([['a', 'b'], ['b', 'c'], ['c', 'a']], 'a');
-    }
-
-    public function testGapIsRejected(): void
-    {
-        // two disconnected chains.
-        $this->expectException(InvalidVersionGraphException::class);
-        self::graph([['cherry', 'banana'], ['grape', 'fig']], 'cherry');
-    }
-
-    public function testHeadMustExistInGraph(): void
-    {
-        $this->expectException(InvalidVersionGraphException::class);
-        self::graph([['cherry', 'banana']], 'melon');
     }
 }

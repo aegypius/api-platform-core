@@ -22,6 +22,7 @@ use ApiPlatform\Versioning\Tests\Fixtures\BookBananaToApple;
 use ApiPlatform\Versioning\Tests\Fixtures\BookCherryToBanana;
 use ApiPlatform\Versioning\Tests\Fixtures\DropInternalNotes;
 use ApiPlatform\Versioning\Tests\Fixtures\Review;
+use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -60,7 +61,7 @@ final class VersionMutationNormalizerTest extends TestCase
             BookBananaToApple::class,
             DropInternalNotes::class,
         ]);
-        $graph = VersionGraph::fromSteps($registry->getSteps(), 'cherry');
+        $graph = VersionGraph::fromVersions($registry->getForVersions(), 'cherry', new FruitComparator());
 
         return new VersionMutationNormalizer(
             $decorated,
