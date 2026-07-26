@@ -73,8 +73,9 @@ final class BookFor1
 final class BookFor2
 {
     // Rename + reshape: the method receives the bound property value, the full
-    // item array, and the context (resource, operation, fromVersion, toVersion,
-    // format). It returns the value for the older key.
+    // item array, and the context (resource, operation, fromVersion = head,
+    // toVersion = requested version, format). It returns the value for the
+    // older key.
     #[Rename(from: 'lastUpdated', to: 'updatedAt')]
     public function downgradeUpdatedAt(mixed $value, array $data, array $context): string
     {

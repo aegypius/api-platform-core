@@ -22,7 +22,9 @@ installation; inert without mutators; `@experimental` public API).
   values) together with head, using a pluggable **version comparator** (default
   semver via `version_compare`; a date comparator ships; custom allowed). There
   is no hand-maintained version list and no need to name a future version. The
-  line is published to clients (`API-Supported-Versions` / `x-api-versions`).
+  requestable versions (head and older) are published to clients
+  (`API-Supported-Versions` / `x-api-versions`); above-head, inactive versions
+  are not advertised, since requesting one is a `400`.
 - **Head** = configured `info.version`, a movable pointer into the line
   (lenient: versions above head are allowed but inactive, so rollbacks don't
   break boot). Requestable range is `[oldest, head]`; above-head or unknown →
@@ -41,7 +43,9 @@ installation; inert without mutators; `@experimental` public API).
   discovers annotated methods by reflection and calls them as
   `(mixed $value, array $data, array $context): mixed` — the bound property
   value, the full item array, and the context (resource object, operation,
-  fromVersion, toVersion, format), returning the property's new value. The
+  fromVersion = head, toVersion = the requested version, format), returning the
+  property's new value. The context describes the whole downgrade span, not a
+  single step. The
   same metadata drives both the documentation and the response; there are no
   arbitrary callbacks. Transforms run per item; the engine iterates
   collections; collection envelope is out of scope.

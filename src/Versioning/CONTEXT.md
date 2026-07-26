@@ -58,4 +58,10 @@ _Avoid_: Patch, diff
 **Version resolver**:
 The strategy that extracts the requested version from a request (default: the
 `Accept-Version` header). Pluggable; also declares its cache `Vary` key.
-_Avoid_: Negotiator, detector
+_Avoid_: Detector, reader
+
+**Version negotiation**:
+Turning the resolved version into the effective one to serve: no preference →
+head, a requestable version as-is, anything else rejected (`400`). Distinct from
+the resolver, which only extracts the raw value.
+_Avoid_: Resolution

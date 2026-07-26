@@ -87,11 +87,6 @@ final class VersionGraph
         return \array_slice($this->versions, $this->headIndex);
     }
 
-    public function has(string $version): bool
-    {
-        return \in_array($version, $this->versions, true);
-    }
-
     public function isRequestable(string $version): bool
     {
         $index = array_search($version, $this->versions, true);

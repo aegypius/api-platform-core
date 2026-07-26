@@ -17,6 +17,7 @@ use ApiPlatform\Versioning\Attributes\ChangeType;
 use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\Restore;
+use ApiPlatform\Versioning\Attributes\VersionMutation;
 use ApiPlatform\Versioning\Metadata\BoundMutation;
 
 /**
@@ -49,7 +50,7 @@ final class SchemaMutator
      *
      * @return array<string, mixed>
      */
-    private function applyOne(array $schema, object $mutation): array
+    private function applyOne(array $schema, VersionMutation $mutation): array
     {
         $properties = \is_array($schema['properties'] ?? null) ? $schema['properties'] : [];
         $required = \is_array($schema['required'] ?? null) ? array_values($schema['required']) : [];
