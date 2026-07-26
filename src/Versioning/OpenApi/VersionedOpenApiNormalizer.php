@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\OpenApi;
 
+use ApiPlatform\Versioning\Exception\OutOfRangeVersionException;
 use ApiPlatform\Versioning\Serializer\VersionMutationNormalizer;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -47,8 +48,15 @@ final class VersionedOpenApiNormalizer implements NormalizerInterface
         $document = $this->decorated->normalize($data, $format, $context);
 
         $version = $context[VersionMutationNormalizer::VERSION_CONTEXT_KEY] ?? null;
-        if (!\is_array($document) || null === $version || !$this->graph->isRequestable($version)) {
+        if (null === $version || !\is_array($document)) {
             return $document;
+        }
+
+        // A version was explicitly requested (e.g. the export command's
+        // --api-version): reject an unknown or above-head one, since — unlike
+        // the runtime docs endpoint — no listener has pre-validated it.
+        if (!$this->graph->isRequestable((string) $version)) {
+            throw OutOfRangeVersionException::notRequestable((string) $version, $this->graph->getRequestableVersions());
         }
 
         /** @var array<string, mixed> $document */

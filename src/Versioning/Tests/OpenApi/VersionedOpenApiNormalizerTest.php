@@ -127,6 +127,12 @@ final class VersionedOpenApiNormalizerTest extends TestCase
         $this->assertNotEmpty($doc['info']['x-api-versions']);
     }
 
+    public function testUnknownVersionIsRejected(): void
+    {
+        $this->expectException(\ApiPlatform\Versioning\Exception\OutOfRangeVersionException::class);
+        $this->normalize([VersionMutationNormalizer::VERSION_CONTEXT_KEY => 'durian']);
+    }
+
     public function testEmitsOverlayWhenRequested(): void
     {
         $overlay = $this->normalize([
