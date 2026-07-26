@@ -14,10 +14,13 @@ declare(strict_types=1);
 namespace ApiPlatform\Versioning\Attributes;
 
 /**
- * Binds a mutator class to one backward-compatible downgrade step
- * ("from" newer version to "to" older version) for a single resource.
+ * Binds a mutator class to the version it produces for a single resource.
  *
- * Repeatable so a single class may serve several resources or steps.
+ * "for" is the older version this mutator yields (the target side of a downgrade
+ * step); the newer side is derived as the next version above it in the ordered
+ * version line. A request for that version, or any older one, runs this mutator.
+ *
+ * Repeatable so a single class may serve several resources or versions.
  *
  * @experimental
  */
@@ -25,14 +28,12 @@ namespace ApiPlatform\Versioning\Attributes;
 final class VersionMutator
 {
     /**
-     * @param class-string $resource the resource the step applies to
-     * @param string       $from     the newer version (head side of the step)
-     * @param string       $to       the older version (target side of the step)
+     * @param class-string $resource the resource the mutator applies to
+     * @param string       $for      the version this mutator produces (older side)
      */
     public function __construct(
         public readonly string $resource,
-        public readonly string $from,
-        public readonly string $to,
+        public readonly string $for,
     ) {
     }
 }

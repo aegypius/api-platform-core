@@ -16,15 +16,15 @@ namespace ApiPlatform\Versioning\Version;
 use ApiPlatform\Versioning\Metadata\MutatorRegistry;
 
 /**
- * Builds the version graph from the discovered mutator steps and the configured
- * head version.
+ * Builds the version line from the versions the mutators produce and the
+ * configured head, ordered by the given comparator.
  *
  * @experimental
  */
 final class VersionGraphFactory
 {
-    public function create(MutatorRegistry $registry, string $head): VersionGraph
+    public function create(MutatorRegistry $registry, string $head, VersionComparatorInterface $comparator): VersionGraph
     {
-        return VersionGraph::fromSteps($registry->getSteps(), $head);
+        return VersionGraph::fromVersions($registry->getForVersions(), $head, $comparator);
     }
 }

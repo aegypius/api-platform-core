@@ -17,12 +17,12 @@ use ApiPlatform\Versioning\Exception\InvalidVersionGraphException;
 use ApiPlatform\Versioning\Exception\OutOfRangeVersionException;
 
 /**
- * The global version line, derived from mutator downgrade edges.
+ * The global version line, derived by ordering the versions the mutators
+ * produce (their "for" values) together with head, using a comparator.
  *
- * The order comes solely from the edges ("from" is newer than "to"); version
- * identifiers are opaque tokens and are never compared as strings. The line
- * must be a single linear path. Head is a movable pointer into that line:
- * versions above head are defined-but-inactive and cannot be requested.
+ * Head is a movable pointer into that line: versions above head are
+ * defined-but-inactive and cannot be requested. Because the line is a sorted
+ * set, it is always linear — there is no branch/merge/gap to reject.
  *
  * @experimental
  */
@@ -42,7 +42,7 @@ final class VersionGraph
     {
         $headIndex = array_search($head, $versions, true);
         if (false === $headIndex) {
-            throw new InvalidVersionGraphException(\sprintf('Head version "%s" is not part of the version graph.', $head));
+            throw new InvalidVersionGraphException(\sprintf('Head version "%s" is not part of the version line.', $head));
         }
 
         $this->versions = $versions;
@@ -50,67 +50,20 @@ final class VersionGraph
     }
 
     /**
-     * @param iterable<VersionStep> $steps
+     * @param iterable<string> $versions the versions produced by the mutators
      */
-    public static function fromSteps(iterable $steps, string $head): self
+    public static function fromVersions(iterable $versions, string $head, VersionComparatorInterface $comparator): self
     {
-        // Deduplicate edges by (from,to); reject branches (one "from" → two
-        // "to") and merges (two "from" → one "to").
-        $outgoing = [];
-        $incoming = [];
-        $nodes = [];
-        foreach ($steps as $step) {
-            $nodes[$step->from] = true;
-            $nodes[$step->to] = true;
-
-            if (isset($outgoing[$step->from]) && $outgoing[$step->from] !== $step->to) {
-                throw new InvalidVersionGraphException(\sprintf('Version "%s" is downgraded to both "%s" and "%s"; the version line must be linear.', $step->from, $outgoing[$step->from], $step->to));
-            }
-            if (isset($incoming[$step->to]) && $incoming[$step->to] !== $step->from) {
-                throw new InvalidVersionGraphException(\sprintf('Version "%s" is downgraded to from both "%s" and "%s"; the version line must be linear.', $step->to, $incoming[$step->to], $step->from));
-            }
-
-            $outgoing[$step->from] = $step->to;
-            $incoming[$step->to] = $step->from;
+        $all = [$head];
+        foreach ($versions as $version) {
+            $all[] = $version;
         }
+        $all = array_values(array_unique($all));
 
-        if (!$nodes) {
-            return new self([$head], $head);
-        }
+        // Ascending (oldest to newest), then reversed to newest first.
+        usort($all, static fn (string $a, string $b): int => $comparator->compare($a, $b));
 
-        // The newest node is the unique one that is never a downgrade target.
-        $newest = null;
-        foreach (array_keys($nodes) as $node) {
-            if (!isset($incoming[$node])) {
-                if (null !== $newest) {
-                    throw new InvalidVersionGraphException(\sprintf('The version line is disconnected: "%s" and "%s" are both newest versions.', $newest, $node));
-                }
-                $newest = $node;
-            }
-        }
-
-        if (null === $newest) {
-            throw new InvalidVersionGraphException('The version line contains a cycle.');
-        }
-
-        // Walk the single path from newest to oldest.
-        $ordered = [];
-        $seen = [];
-        $current = $newest;
-        while (null !== $current) {
-            if (isset($seen[$current])) {
-                throw new InvalidVersionGraphException('The version line contains a cycle.');
-            }
-            $seen[$current] = true;
-            $ordered[] = $current;
-            $current = $outgoing[$current] ?? null;
-        }
-
-        if (\count($ordered) !== \count($nodes)) {
-            throw new InvalidVersionGraphException('The version line is disconnected: some versions are not reachable on a single path.');
-        }
-
-        return new self($ordered, $head);
+        return new self(array_reverse($all), $head);
     }
 
     /**
