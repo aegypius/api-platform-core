@@ -51,20 +51,21 @@ final class VersionedOpenApiNormalizer implements NormalizerInterface
         if (null === $version || !\is_array($document)) {
             return $document;
         }
+        $version = (string) $version;
 
         // A version was explicitly requested (e.g. the export command's
         // --api-version): reject an unknown or above-head one, since — unlike
         // the runtime docs endpoint — no listener has pre-validated it.
-        if (!$this->graph->isRequestable((string) $version)) {
-            throw OutOfRangeVersionException::notRequestable((string) $version, $this->graph->getRequestableVersions());
+        if (!$this->graph->isRequestable($version)) {
+            throw OutOfRangeVersionException::notRequestable($version, $this->graph->getRequestableVersions());
         }
 
         /** @var array<string, mixed> $document */
         if ($context[self::OVERLAY_CONTEXT_KEY] ?? false) {
-            return $this->overlay($document, (string) $version);
+            return $this->overlay($document, $version);
         }
 
-        return $this->documentMutator->mutate($document, (string) $version);
+        return $this->documentMutator->mutate($document, $version);
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool

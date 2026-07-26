@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\Tests\OpenApi;
 
+use ApiPlatform\Versioning\Exception\OutOfRangeVersionException;
 use ApiPlatform\Versioning\Metadata\MutatorMetadataFactory;
 use ApiPlatform\Versioning\OpenApi\ChangelogFactory;
 use ApiPlatform\Versioning\OpenApi\DocumentMutator;
@@ -129,7 +130,7 @@ final class VersionedOpenApiNormalizerTest extends TestCase
 
     public function testUnknownVersionIsRejected(): void
     {
-        $this->expectException(\ApiPlatform\Versioning\Exception\OutOfRangeVersionException::class);
+        $this->expectException(OutOfRangeVersionException::class);
         $this->normalize([VersionMutationNormalizer::VERSION_CONTEXT_KEY => 'durian']);
     }
 
