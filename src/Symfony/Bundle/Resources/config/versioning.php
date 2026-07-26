@@ -26,6 +26,9 @@ use ApiPlatform\Versioning\State\VersionResolverInterface;
 use ApiPlatform\Versioning\Symfony\EventListener\AddVersionHeadersListener;
 use ApiPlatform\Versioning\Symfony\EventListener\NegotiateVersionListener;
 use ApiPlatform\Versioning\Symfony\State\VersionSerializerContextBuilder;
+use ApiPlatform\Versioning\Version\DateVersionComparator;
+use ApiPlatform\Versioning\Version\SemverVersionComparator;
+use ApiPlatform\Versioning\Version\VersionComparatorInterface;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use ApiPlatform\Versioning\Version\VersionGraphFactory;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -43,11 +46,21 @@ return static function (ContainerConfigurator $container): void {
         ->factory([service('api_platform.versioning.metadata_factory'), 'create'])
         ->args([[]]);
 
+    // Comparators derive the version order. Default is semver; the alias is
+    // repointed from config to date or a custom service.
+    $services->set('api_platform.versioning.comparator.semver', SemverVersionComparator::class);
+    $services->set('api_platform.versioning.comparator.date', DateVersionComparator::class);
+    $services->alias(VersionComparatorInterface::class, 'api_platform.versioning.comparator.semver');
+
     $services->set('api_platform.versioning.graph_factory', VersionGraphFactory::class);
 
     $services->set('api_platform.versioning.graph', VersionGraph::class)
         ->factory([service('api_platform.versioning.graph_factory'), 'create'])
-        ->args([service('api_platform.versioning.registry'), '%api_platform.version%']);
+        ->args([
+            service('api_platform.versioning.registry'),
+            '%api_platform.version%',
+            service(VersionComparatorInterface::class),
+        ]);
 
     $services->set('api_platform.versioning.chain_resolver', DowngradeChainResolver::class)
         ->args([service('api_platform.versioning.graph'), service('api_platform.versioning.registry')]);

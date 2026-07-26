@@ -62,6 +62,7 @@ use ApiPlatform\State\ApiResource\Error;
 use ApiPlatform\State\ParameterProviderInterface;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
 use ApiPlatform\Versioning\Symfony\DependencyInjection\VersioningPass;
+use ApiPlatform\Versioning\Version\VersionComparatorInterface;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ProviderInterface;
@@ -339,6 +340,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
 
         if (class_exists(VersionGraph::class)) {
             $loader->load('versioning.php');
+            $container->setAlias(VersionComparatorInterface::class, $config['versioning']['comparator']);
         }
 
         if (class_exists(\PhpParser\ParserFactory::class)) {
