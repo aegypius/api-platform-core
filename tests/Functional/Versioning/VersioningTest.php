@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Tests\Functional\Versioning;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Versioning\VersionedBookOperation;
+use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Versioning\VersionedBook;
 use ApiPlatform\Tests\Fixtures\TestBundle\State\VersionedBookV2ToV1;
 use ApiPlatform\Tests\SetupClassResourcesTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -53,7 +53,7 @@ final class VersioningTest extends ApiTestCase
      */
     public static function getResources(): array
     {
-        return [VersionedBookOperation::class];
+        return [VersionedBook::class];
     }
 
     public function testNoVersionHeaderServesHead(): void
@@ -111,5 +111,36 @@ final class VersioningTest extends ApiTestCase
         ]]);
 
         $this->assertResponseStatusCodeSame(400);
+    }
+
+    public function testDocsEndpointDowngradesTheSchema(): void
+    {
+        $response = self::createClient()->request('GET', '/docs', ['headers' => [
+            'Accept' => 'application/vnd.openapi+json',
+            'Accept-Version' => '1.0.0',
+        ]]);
+
+        $this->assertResponseIsSuccessful();
+        $doc = $response->toArray();
+        $schema = $doc['components']['schemas']['VersionedBook']['properties'];
+
+        $this->assertArrayHasKey('name', $schema);
+        $this->assertArrayNotHasKey('title', $schema);
+        $this->assertArrayNotHasKey('discount', $schema);
+        $this->assertArrayHasKey('updatedAt', $schema);
+        $this->assertSame('integer', $schema['available']['type']);
+        $this->assertSame('1.0.0', $doc['info']['version']);
+    }
+
+    public function testDocsEndpointHeadPublishesTheVersionLine(): void
+    {
+        $doc = self::createClient()->request('GET', '/docs', ['headers' => [
+            'Accept' => 'application/vnd.openapi+json',
+        ]])->toArray();
+
+        // No Accept-Version → head (2.0.0); schema untouched, versions published.
+        $this->assertArrayHasKey('title', $doc['components']['schemas']['VersionedBook']['properties']);
+        $this->assertSame('2.0.0', $doc['info']['version']);
+        $this->assertSame(['2.0.0', '1.0.0'], $doc['info']['x-api-versions']);
     }
 }

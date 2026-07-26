@@ -17,6 +17,7 @@ use ApiPlatform\Versioning\OpenApi\OverlayFactory;
 use ApiPlatform\Versioning\OpenApi\SchemaMutator;
 use ApiPlatform\Versioning\OpenApi\SchemaNameResolverInterface;
 use ApiPlatform\Versioning\OpenApi\ShortNameSchemaNameResolver;
+use ApiPlatform\Versioning\OpenApi\VersionedOpenApiNormalizer;
 use ApiPlatform\Versioning\State\DowngradeChainResolver;
 use ApiPlatform\Versioning\State\HeaderVersionResolver;
 use ApiPlatform\Versioning\State\ResponseMutator;
@@ -104,6 +105,15 @@ return static function (ContainerConfigurator $container): void {
         ->decorate('api_platform.serializer.context_builder')
         ->args([
             service('api_platform.versioning.serializer.context_builder.inner'),
+        ]);
+
+    $services->set('api_platform.versioning.openapi.normalizer', VersionedOpenApiNormalizer::class)
+        ->decorate('api_platform.openapi.normalizer')
+        ->args([
+            service('api_platform.versioning.openapi.normalizer.inner'),
+            service('api_platform.versioning.graph'),
+            service('api_platform.versioning.document_mutator'),
+            service('api_platform.versioning.overlay_factory'),
         ]);
 
     $services->set('api_platform.versioning.event_listener.negotiate', NegotiateVersionListener::class)

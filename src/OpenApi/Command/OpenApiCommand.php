@@ -46,7 +46,9 @@ final class OpenApiCommand extends Command
             ->addOption('output', 'o', InputOption::VALUE_REQUIRED, 'Write output to file')
             ->addOption('spec-version', null, InputOption::VALUE_REQUIRED, 'Open API version to use (2 or 3) (2 is deprecated)', '3')
             ->addOption('api-gateway', null, InputOption::VALUE_NONE, 'Enable the Amazon API Gateway compatibility mode')
-            ->addOption('filter-tags', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Filter only matching x-apiplatform-tag operations', null);
+            ->addOption('filter-tags', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Filter only matching x-apiplatform-tag operations', null)
+            ->addOption('api-version', null, InputOption::VALUE_REQUIRED, 'Export the documentation for this API version (experimental versioning)')
+            ->addOption('overlay', null, InputOption::VALUE_NONE, 'With --api-version, export the OpenAPI Overlay describing that version instead of the document');
     }
 
     /**
@@ -57,13 +59,23 @@ final class OpenApiCommand extends Command
         $filesystem = new Filesystem();
         $io = new SymfonyStyle($input, $output);
         $specVersion = $input->getOption('spec-version');
+
+        $normalizationContext = ['spec_version' => $specVersion];
+        // Forwarded to the experimental versioning normalizer, if installed.
+        if (\is_string($apiVersion = $input->getOption('api-version')) && '' !== $apiVersion) {
+            $normalizationContext['api_platform_version'] = $apiVersion;
+            if ($input->getOption('overlay')) {
+                $normalizationContext['api_platform_overlay'] = true;
+            }
+        }
+
         $data = $this->normalizer->normalize(
             $this->openApiFactory->__invoke([
                 'filter_tags' => $input->getOption('filter-tags'),
                 'spec_version' => $specVersion,
             ]),
             'json',
-            ['spec_version' => $specVersion]
+            $normalizationContext
         );
 
         if ($input->getOption('yaml') && !class_exists(Yaml::class)) {

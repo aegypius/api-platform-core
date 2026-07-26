@@ -116,8 +116,9 @@ An unknown version, or one newer than head, is rejected with `400`.
 
 The OpenAPI document for a version has its schemas downgraded, `info.version`
 set, the `x-api-versions` list, and an `x-api-changelog` derived from your
-mutators. A spec-compliant OpenAPI Overlay of each version delta can also be
-produced.
+mutators. The docs endpoint negotiates the same `Accept-Version` header; the
+`api:openapi:export` command takes `--api-version` (and `--overlay` to emit the
+OpenAPI Overlay describing that version instead of the document).
 
 ## Limitations
 
@@ -128,6 +129,10 @@ produced.
 - **Collection envelopes are not mutated.** Only the items are; pagination and
   top-level fields are out of scope.
 - **Value logic is bounded** by the mutation vocabulary — no arbitrary callbacks.
+- **Schema mapping is by short name.** A mutator's documentation applies to the
+  component schemas named after the resource's short name (and its format/group
+  variants). Provide a custom `SchemaNameResolverInterface` if your resource's
+  schema is named differently (e.g. a separate output DTO).
 
 ## More
 

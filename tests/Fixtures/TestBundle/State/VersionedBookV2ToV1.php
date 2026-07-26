@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Tests\Fixtures\TestBundle\State;
 
-use ApiPlatform\Tests\Fixtures\TestBundle\Dto\VersionedBook;
+use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Versioning\VersionedBook;
 use ApiPlatform\Versioning\Attributes\ChangeType;
 use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;

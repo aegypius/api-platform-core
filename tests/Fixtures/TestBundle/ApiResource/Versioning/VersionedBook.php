@@ -11,12 +11,16 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Tests\Fixtures\TestBundle\Dto;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Versioning;
+
+use ApiPlatform\Metadata\Get;
 
 /**
  * Head (version "2.0.0") shape of a book, used by the experimental versioning
- * functional test.
+ * functional test. The resource is its own output so its OpenAPI schema is
+ * named after it ("VersionedBook").
  */
+#[Get(uriTemplate: '/versioned_book', provider: [VersionedBook::class, 'provide'])]
 final class VersionedBook
 {
     public function __construct(
@@ -26,5 +30,10 @@ final class VersionedBook
         public string $lastUpdated = '2026-01-02T03:04:05+02:00',
         public string $isbn = '978-0135957059',
     ) {
+    }
+
+    public static function provide(): self
+    {
+        return new self();
     }
 }

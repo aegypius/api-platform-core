@@ -48,6 +48,7 @@ final class VersioningPassTest extends TestCase
         // Stubs for the services the versioning config decorates.
         $container->register('api_platform.serializer.context_builder', StubContextBuilder::class);
         $container->register('api_platform.serializer.normalizer.item', StubItemNormalizer::class);
+        $container->register('api_platform.openapi.normalizer', StubItemNormalizer::class);
 
         if ($withMutators) {
             foreach ([BookCherryToBanana::class, BookBananaToApple::class, DropInternalNotes::class] as $class) {
@@ -71,6 +72,7 @@ final class VersioningPassTest extends TestCase
 
         // The request/response hooks are removed so behaviour is unchanged.
         $this->assertFalse($container->hasDefinition('api_platform.versioning.serializer.context_builder'));
+        $this->assertFalse($container->hasDefinition('api_platform.versioning.openapi.normalizer'));
         $this->assertFalse($container->hasDefinition('api_platform.versioning.event_listener.add_headers'));
         $this->assertFalse($container->hasDefinition('api_platform.serializer.normalizer.item.versioning'));
     }
