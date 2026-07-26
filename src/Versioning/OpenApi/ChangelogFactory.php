@@ -18,6 +18,7 @@ use ApiPlatform\Versioning\Attributes\Remove;
 use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\Restore;
 use ApiPlatform\Versioning\Metadata\MutatorRegistry;
+use ApiPlatform\Versioning\Util\ShortName;
 use ApiPlatform\Versioning\Version\VersionGraph;
 
 /**
@@ -64,7 +65,7 @@ final class ChangelogFactory
 
     private function describe(string $resource, object $mutation): string
     {
-        $short = false !== ($pos = strrpos($resource, '\\')) ? substr($resource, $pos + 1) : $resource;
+        $short = ShortName::of($resource);
 
         $detail = match (true) {
             $mutation instanceof Remove => \sprintf('removed "%s"', $mutation->property),

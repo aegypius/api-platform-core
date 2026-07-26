@@ -61,6 +61,12 @@ return static function (ContainerConfigurator $container): void {
     $services->set('api_platform.versioning.schema_name_resolver', ShortNameSchemaNameResolver::class);
     $services->alias(SchemaNameResolverInterface::class, 'api_platform.versioning.schema_name_resolver');
 
+    $services->set('api_platform.versioning.changelog_factory', ChangelogFactory::class)
+        ->args([
+            service('api_platform.versioning.graph'),
+            service('api_platform.versioning.registry'),
+        ]);
+
     $services->set('api_platform.versioning.document_mutator', DocumentMutator::class)
         ->args([
             service('api_platform.versioning.graph'),
@@ -68,12 +74,7 @@ return static function (ContainerConfigurator $container): void {
             service('api_platform.versioning.chain_resolver'),
             service('api_platform.versioning.schema_mutator'),
             service('api_platform.versioning.schema_name_resolver'),
-        ]);
-
-    $services->set('api_platform.versioning.changelog_factory', ChangelogFactory::class)
-        ->args([
-            service('api_platform.versioning.graph'),
-            service('api_platform.versioning.registry'),
+            service('api_platform.versioning.changelog_factory'),
         ]);
 
     $services->set('api_platform.versioning.headers_factory', VersionHeadersFactory::class)

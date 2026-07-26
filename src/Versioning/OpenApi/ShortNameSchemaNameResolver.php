@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Versioning\OpenApi;
 
+use ApiPlatform\Versioning\Util\ShortName;
+
 /**
  * Resolves schema names by the resource's short class name: API Platform names
  * component schemas after the short name, optionally suffixed by a format
@@ -25,7 +27,7 @@ final class ShortNameSchemaNameResolver implements SchemaNameResolverInterface
 {
     public function resolveSchemaNames(string $resource, array $schemaNames): array
     {
-        $short = false !== ($pos = strrpos($resource, '\\')) ? substr($resource, $pos + 1) : $resource;
+        $short = ShortName::of($resource);
 
         return array_values(array_filter(
             $schemaNames,

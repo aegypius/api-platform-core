@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Versioning\Tests\OpenApi;
 
 use ApiPlatform\Versioning\Metadata\MutatorMetadataFactory;
+use ApiPlatform\Versioning\OpenApi\ChangelogFactory;
 use ApiPlatform\Versioning\OpenApi\DocumentMutator;
 use ApiPlatform\Versioning\OpenApi\SchemaMutator;
 use ApiPlatform\Versioning\OpenApi\ShortNameSchemaNameResolver;
@@ -41,6 +42,7 @@ final class DocumentMutatorTest extends TestCase
             new DowngradeChainResolver($graph, $registry),
             new SchemaMutator(),
             new ShortNameSchemaNameResolver(),
+            new ChangelogFactory($graph, $registry),
         );
     }
 
@@ -96,6 +98,10 @@ final class DocumentMutatorTest extends TestCase
 
         $this->assertSame('apple', $document['info']['version']);
         $this->assertSame(['cherry', 'banana', 'apple'], $document['info']['x-api-versions']);
+
+        // changelog derived from the mutators is attached alongside x-api-versions.
+        $this->assertNotEmpty($document['info']['x-api-changelog']);
+        $this->assertContains('Book: removed "discount"', $document['info']['x-api-changelog'][0]['changes']);
     }
 
     public function testSchemasWithoutMutatorsAreUntouched(): void

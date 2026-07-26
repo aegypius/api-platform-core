@@ -33,6 +33,7 @@ final class DocumentMutator
         private readonly DowngradeChainResolver $chainResolver,
         private readonly SchemaMutator $schemaMutator,
         private readonly SchemaNameResolverInterface $schemaNameResolver,
+        private readonly ChangelogFactory $changelogFactory,
     ) {
     }
 
@@ -64,6 +65,7 @@ final class DocumentMutator
 
         $document['info']['version'] = $target;
         $document['info']['x-api-versions'] = $this->graph->getRequestableVersions();
+        $document['info']['x-api-changelog'] = $this->changelogFactory->create();
 
         return $document;
     }
