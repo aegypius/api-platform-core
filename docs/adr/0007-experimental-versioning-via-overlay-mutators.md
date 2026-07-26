@@ -88,7 +88,7 @@ final class BookFor1
     #[Rename(from: 'lastUpdated', to: 'updatedAt')]
     public function downgradeUpdatedAt(mixed $value, array $data, array $context): string
     {
-        return (new \DateTimeImmutable($value))->format('Y-m-d\TH:i:s');
+        return (new \DateTimeImmutable((string) $value))->format('Y-m-d\TH:i:s');
     }
 
     // head serves a boolean; 1.0.0 clients expect 0/1 — type change.
