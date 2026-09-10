@@ -88,7 +88,7 @@ return static function (ContainerConfigurator $container): void {
             service('api_platform.versioning.registry'),
             service('api_platform.versioning.chain_resolver'),
             service('api_platform.versioning.schema_mutator'),
-            service('api_platform.versioning.schema_name_resolver'),
+            service(SchemaNameResolverInterface::class),
             service('api_platform.versioning.changelog_factory'),
         ]);
 

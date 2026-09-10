@@ -15,6 +15,8 @@ namespace ApiPlatform\Versioning\Tests\Symfony\DependencyInjection;
 
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use ApiPlatform\Versioning\Metadata\MutatorRegistry;
+use ApiPlatform\Versioning\OpenApi\DocumentMutator;
+use ApiPlatform\Versioning\OpenApi\SchemaNameResolverInterface;
 use ApiPlatform\Versioning\Serializer\VersionMutationNormalizer;
 use ApiPlatform\Versioning\State\DowngradeChainResolver;
 use ApiPlatform\Versioning\State\ResponseMutator;
@@ -22,6 +24,7 @@ use ApiPlatform\Versioning\Symfony\DependencyInjection\VersioningPass;
 use ApiPlatform\Versioning\Tests\Fixtures\Book;
 use ApiPlatform\Versioning\Tests\Fixtures\BookBananaToApple;
 use ApiPlatform\Versioning\Tests\Fixtures\BookCherryToBanana;
+use ApiPlatform\Versioning\Tests\Fixtures\CustomSchemaNameResolver;
 use ApiPlatform\Versioning\Tests\Fixtures\DropInternalNotes;
 use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
 use ApiPlatform\Versioning\Version\VersionComparatorInterface;
@@ -92,6 +95,36 @@ final class VersioningPassTest extends TestCase
         $decorator = $container->getDefinition('api_platform.serializer.normalizer.item.versioning');
         $this->assertSame(VersionMutationNormalizer::class, $decorator->getClass());
         $this->assertSame('api_platform.serializer.normalizer.item', $decorator->getDecoratedService()[0]);
+    }
+
+    public function testDocumentMutatorReceivesTheSchemaNameResolverThroughTheInterface(): void
+    {
+        $container = $this->container();
+
+        // The README documents overriding the SchemaNameResolverInterface
+        // alias as the extension point; the DI wiring must go through the
+        // interface, not a concrete service id, for that override to work.
+        $argument = $container->getDefinition('api_platform.versioning.document_mutator')->getArgument(4);
+        $this->assertInstanceOf(Reference::class, $argument);
+        $this->assertSame(SchemaNameResolverInterface::class, (string) $argument);
+    }
+
+    public function testOverridingTheSchemaNameResolverInterfaceAliasIsHonoured(): void
+    {
+        $container = $this->container();
+        $container->register(CustomSchemaNameResolver::class, CustomSchemaNameResolver::class);
+        // Mimics overriding the alias from a project's services.yaml, as the README documents.
+        $container->setAlias(SchemaNameResolverInterface::class, CustomSchemaNameResolver::class);
+
+        $container->addCompilerPass(new VersioningPass());
+        $container->getDefinition('api_platform.versioning.document_mutator')->setPublic(true);
+        $container->compile();
+
+        /** @var DocumentMutator $documentMutator */
+        $documentMutator = $container->get('api_platform.versioning.document_mutator');
+
+        $resolver = (new \ReflectionProperty(DocumentMutator::class, 'schemaNameResolver'))->getValue($documentMutator);
+        $this->assertInstanceOf(CustomSchemaNameResolver::class, $resolver);
     }
 
     public function testCompiledServicesBehaveEndToEnd(): void
