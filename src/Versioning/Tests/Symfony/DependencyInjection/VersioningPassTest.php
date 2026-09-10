@@ -123,8 +123,24 @@ final class VersioningPassTest extends TestCase
         /** @var DocumentMutator $documentMutator */
         $documentMutator = $container->get('api_platform.versioning.document_mutator');
 
-        $resolver = (new \ReflectionProperty(DocumentMutator::class, 'schemaNameResolver'))->getValue($documentMutator);
-        $this->assertInstanceOf(CustomSchemaNameResolver::class, $resolver);
+        // Book's schema is under "BookOutput", not "Book" as ShortNameSchemaNameResolver
+        // would expect; only a resolver honouring the override can find it.
+        $document = [
+            'components' => [
+                'schemas' => [
+                    'Book' => ['properties' => ['title' => ['type' => 'string'], 'discount' => ['type' => 'integer']]],
+                    'BookOutput' => ['properties' => ['title' => ['type' => 'string'], 'discount' => ['type' => 'integer']]],
+                ],
+            ],
+        ];
+
+        $result = $documentMutator->mutate($document, 'banana');
+
+        // "Book" isn't matched by CustomSchemaNameResolver, so it's left untouched.
+        $this->assertSame(['title', 'discount'], array_keys($result['components']['schemas']['Book']['properties']));
+
+        // "BookOutput" is matched, so BookCherryToBanana's mutations were applied.
+        $this->assertSame(['name'], array_keys($result['components']['schemas']['BookOutput']['properties']));
     }
 
     public function testCompiledServicesBehaveEndToEnd(): void
