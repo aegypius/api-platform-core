@@ -89,19 +89,19 @@ final class OverlayFactoryTest extends TestCase
         $actions = (new OverlayFactory())->actionsForSchema('Book.jsonld', $head, $mutated);
 
         $this->assertContains(
-            ['target' => "$.components.schemas['Book.jsonld'].properties['discount']", 'remove' => true],
+            ['target' => "$.components.schemas['Book.jsonld'].allOf[1].properties['discount']", 'remove' => true],
             $actions,
         );
         $this->assertContains(
-            ['target' => "$.components.schemas['Book.jsonld'].properties['title']", 'remove' => true],
+            ['target' => "$.components.schemas['Book.jsonld'].allOf[1].properties['title']", 'remove' => true],
             $actions,
         );
         $this->assertContains(
-            ['target' => "$.components.schemas['Book.jsonld'].properties['name']", 'update' => ['type' => 'string']],
+            ['target' => "$.components.schemas['Book.jsonld'].allOf[1].properties['name']", 'update' => ['type' => 'string']],
             $actions,
         );
         $this->assertContains(
-            ['target' => "$.components.schemas['Book.jsonld'].required", 'update' => ['name']],
+            ['target' => "$.components.schemas['Book.jsonld'].allOf[1].required", 'update' => ['name']],
             $actions,
         );
     }

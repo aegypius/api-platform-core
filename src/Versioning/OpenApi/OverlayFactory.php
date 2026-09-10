@@ -38,11 +38,11 @@ final class OverlayFactory
      */
     public function actionsForSchema(string $schemaName, array $head, array $mutated): array
     {
-        $base = \sprintf("$.components.schemas['%s']", $schemaName);
-        $actions = [];
-
-        [$headProperties, $headRequired] = $this->propertiesOf($head);
+        [$headProperties, $headRequired, $headPath] = $this->propertiesOf($head);
         [$mutatedProperties, $mutatedRequired] = $this->propertiesOf($mutated);
+
+        $base = \sprintf("$.components.schemas['%s']%s", $schemaName, $headPath);
+        $actions = [];
 
         // Removed properties.
         foreach ($headProperties as $name => $_) {
@@ -74,14 +74,17 @@ final class OverlayFactory
      *
      * @param array<string, mixed> $schema
      *
-     * @return array{0: array<string, mixed>, 1: list<string>}
+     * @return array{0: array<string, mixed>, 1: list<string>, 2: string}
      */
     private function propertiesOf(array $schema): array
     {
+        $path = '';
+
         if (\is_array($schema['allOf'] ?? null)) {
-            foreach ($schema['allOf'] as $entry) {
+            foreach ($schema['allOf'] as $i => $entry) {
                 if (\is_array($entry) && \is_array($entry['properties'] ?? null)) {
                     $schema = $entry;
+                    $path = ".allOf[{$i}]";
                     break;
                 }
             }
@@ -90,7 +93,7 @@ final class OverlayFactory
         $properties = \is_array($schema['properties'] ?? null) ? $schema['properties'] : [];
         $required = array_values($schema['required'] ?? []);
 
-        return [$properties, $required];
+        return [$properties, $required, $path];
     }
 
     /**
