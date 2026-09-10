@@ -71,13 +71,7 @@ final class SchemaMutator
     private function applyToAllOf(array $schema, VersionMutationInterface $mutation): array
     {
         $allOf = $schema['allOf'];
-        $index = null;
-        foreach ($allOf as $i => $entry) {
-            if (\is_array($entry) && \is_array($entry['properties'] ?? null)) {
-                $index = $i;
-                break;
-            }
-        }
+        $index = AllOfProperties::indexOf($allOf);
 
         if (null !== $index) {
             $allOf[$index] = $this->applyToObject($allOf[$index], $mutation);

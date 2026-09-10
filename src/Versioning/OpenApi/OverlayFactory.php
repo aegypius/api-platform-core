@@ -81,12 +81,10 @@ final class OverlayFactory
         $path = '';
 
         if (\is_array($schema['allOf'] ?? null)) {
-            foreach ($schema['allOf'] as $i => $entry) {
-                if (\is_array($entry) && \is_array($entry['properties'] ?? null)) {
-                    $schema = $entry;
-                    $path = ".allOf[{$i}]";
-                    break;
-                }
+            $index = AllOfProperties::indexOf($schema['allOf']);
+            if (null !== $index) {
+                $schema = $schema['allOf'][$index];
+                $path = ".allOf[{$index}]";
             }
         }
 
