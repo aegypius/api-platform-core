@@ -133,7 +133,14 @@ OpenAPI Overlay describing that version instead of the document).
 - **Schema mapping is by short name.** A mutator's documentation applies to the
   component schemas named after the resource's short name (and its format/group
   variants). Provide a custom `SchemaNameResolverInterface` if your resource's
-  schema is named differently (e.g. a separate output DTO).
+  schema is named differently (e.g. a separate output DTO), by overriding the
+  `api_platform.versioning.schema_name_resolver` alias:
+
+  ```yaml
+  # config/services.yaml
+  services:
+      ApiPlatform\Versioning\OpenApi\SchemaNameResolverInterface: '@App\Versioning\CustomSchemaNameResolver'
+  ```
 
 ## More
 
