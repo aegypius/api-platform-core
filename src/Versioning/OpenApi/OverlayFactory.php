@@ -41,8 +41,8 @@ final class OverlayFactory
         $base = \sprintf("$.components.schemas['%s']", $schemaName);
         $actions = [];
 
-        $headProperties = \is_array($head['properties'] ?? null) ? $head['properties'] : [];
-        $mutatedProperties = \is_array($mutated['properties'] ?? null) ? $mutated['properties'] : [];
+        [$headProperties, $headRequired] = $this->propertiesOf($head);
+        [$mutatedProperties, $mutatedRequired] = $this->propertiesOf($mutated);
 
         // Removed properties.
         foreach ($headProperties as $name => $_) {
@@ -59,13 +59,38 @@ final class OverlayFactory
         }
 
         // Required set, when it changed (arrays are replaced wholesale by update).
-        $headRequired = array_values($head['required'] ?? []);
-        $mutatedRequired = array_values($mutated['required'] ?? []);
         if ($headRequired !== $mutatedRequired) {
             $actions[] = ['target' => $base.'.required', 'update' => $mutatedRequired];
         }
 
         return $actions;
+    }
+
+    /**
+     * Reads a schema's own properties/required, following JSON-LD/Hydra's
+     * allOf composition (the resource's properties live in the allOf member
+     * that isn't a bare $ref) so overlay diffing sees the same shape
+     * {@see SchemaMutator} mutates.
+     *
+     * @param array<string, mixed> $schema
+     *
+     * @return array{0: array<string, mixed>, 1: list<string>}
+     */
+    private function propertiesOf(array $schema): array
+    {
+        if (\is_array($schema['allOf'] ?? null)) {
+            foreach ($schema['allOf'] as $entry) {
+                if (\is_array($entry) && \is_array($entry['properties'] ?? null)) {
+                    $schema = $entry;
+                    break;
+                }
+            }
+        }
+
+        $properties = \is_array($schema['properties'] ?? null) ? $schema['properties'] : [];
+        $required = array_values($schema['required'] ?? []);
+
+        return [$properties, $required];
     }
 
     /**

@@ -52,6 +52,57 @@ final class SchemaMutator
      */
     private function applyOne(array $schema, VersionMutationInterface $mutation): array
     {
+        if (\is_array($schema['allOf'] ?? null)) {
+            return $this->applyToAllOf($schema, $mutation);
+        }
+
+        return $this->applyToObject($schema, $mutation);
+    }
+
+    /**
+     * Hydra/JSON-LD schemas compose the resource's own properties inside
+     * allOf (alongside a $ref to a shared base schema), so the mutation must
+     * be located and applied there instead of at the schema's top level.
+     *
+     * @param array<string, mixed> $schema
+     *
+     * @return array<string, mixed>
+     */
+    private function applyToAllOf(array $schema, VersionMutationInterface $mutation): array
+    {
+        $allOf = $schema['allOf'];
+        $index = null;
+        foreach ($allOf as $i => $entry) {
+            if (\is_array($entry) && \is_array($entry['properties'] ?? null)) {
+                $index = $i;
+                break;
+            }
+        }
+
+        if (null !== $index) {
+            $allOf[$index] = $this->applyToObject($allOf[$index], $mutation);
+        } else {
+            // None of the allOf entries carry properties (e.g. a $ref-only
+            // base schema): only add one if the mutation actually produces
+            // properties (Restore), to avoid injecting an empty object.
+            $mutated = $this->applyToObject(['type' => 'object'], $mutation);
+            if (isset($mutated['properties'])) {
+                $allOf[] = $mutated;
+            }
+        }
+
+        $schema['allOf'] = array_values($allOf);
+
+        return $schema;
+    }
+
+    /**
+     * @param array<string, mixed> $schema
+     *
+     * @return array<string, mixed>
+     */
+    private function applyToObject(array $schema, VersionMutationInterface $mutation): array
+    {
         $properties = \is_array($schema['properties'] ?? null) ? $schema['properties'] : [];
         $required = \is_array($schema['required'] ?? null) ? array_values($schema['required']) : [];
 

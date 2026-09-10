@@ -60,6 +60,52 @@ final class OverlayFactoryTest extends TestCase
         );
     }
 
+    public function testDiffsPropertiesNestedUnderAllOfForJsonLdSchemas(): void
+    {
+        $head = [
+            'allOf' => [
+                ['$ref' => '#/components/schemas/HydraItemBaseSchema'],
+                [
+                    'type' => 'object',
+                    'properties' => [
+                        'title' => ['type' => 'string'],
+                        'discount' => ['type' => 'integer'],
+                    ],
+                    'required' => ['title'],
+                ],
+            ],
+        ];
+        $mutated = [
+            'allOf' => [
+                ['$ref' => '#/components/schemas/HydraItemBaseSchema'],
+                [
+                    'type' => 'object',
+                    'properties' => ['name' => ['type' => 'string']],
+                    'required' => ['name'],
+                ],
+            ],
+        ];
+
+        $actions = (new OverlayFactory())->actionsForSchema('Book.jsonld', $head, $mutated);
+
+        $this->assertContains(
+            ['target' => "$.components.schemas['Book.jsonld'].properties['discount']", 'remove' => true],
+            $actions,
+        );
+        $this->assertContains(
+            ['target' => "$.components.schemas['Book.jsonld'].properties['title']", 'remove' => true],
+            $actions,
+        );
+        $this->assertContains(
+            ['target' => "$.components.schemas['Book.jsonld'].properties['name']", 'update' => ['type' => 'string']],
+            $actions,
+        );
+        $this->assertContains(
+            ['target' => "$.components.schemas['Book.jsonld'].required", 'update' => ['name']],
+            $actions,
+        );
+    }
+
     public function testNoChangeYieldsNoActions(): void
     {
         $schema = ['properties' => ['a' => ['type' => 'string']], 'required' => ['a']];

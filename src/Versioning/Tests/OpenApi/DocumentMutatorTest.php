@@ -69,8 +69,13 @@ final class DocumentMutatorTest extends TestCase
                         'required' => ['title'],
                     ],
                     'Book.jsonld' => [
-                        'type' => 'object',
-                        'properties' => ['title' => ['type' => 'string']],
+                        'allOf' => [
+                            ['$ref' => '#/components/schemas/HydraItemBaseSchema'],
+                            [
+                                'type' => 'object',
+                                'properties' => ['title' => ['type' => 'string'], 'discount' => ['type' => 'integer']],
+                            ],
+                        ],
                     ],
                     'Author' => [
                         'type' => 'object',
@@ -94,8 +99,11 @@ final class DocumentMutatorTest extends TestCase
         $this->assertSame(['type' => 'string', 'format' => 'date-time'], $book['updatedAt']);
         $this->assertSame(['type' => 'integer'], $book['available']);
 
-        // every schema the resource owns is mutated, including format variants.
-        $this->assertArrayHasKey('name', $document['components']['schemas']['Book.jsonld']['properties']);
+        // every schema the resource owns is mutated, including format variants
+        // whose properties are nested under allOf (JSON-LD/Hydra composition).
+        $jsonLdProperties = $document['components']['schemas']['Book.jsonld']['allOf'][1]['properties'];
+        $this->assertArrayHasKey('name', $jsonLdProperties);
+        $this->assertArrayNotHasKey('discount', $jsonLdProperties);
 
         $this->assertSame('apple', $document['info']['version']);
         $this->assertSame(['cherry', 'banana', 'apple'], $document['info']['x-api-versions']);
