@@ -35,7 +35,7 @@ parameters:
 		- src/*/vendor/*
 		# Symfony 6 support
 		- src/Symfony/Bundle/ArgumentResolver/CompatibleValueResolverInterface.php
-		- tests/Fixtures/app/config/reference.php
+		- tests/Fixtures/app/config/reference.php (?)
 	earlyTerminatingMethodCalls:
 		PHPUnit\Framework\Constraint\Constraint:
 			- fail
@@ -82,6 +82,12 @@ parameters:
 		-
 			message: '#Service "test" is not registered in the container\.#'
 			path: src/GraphQl/Tests/Type/TypesContainerTest.php
+		# phpstan-symfony resolves ->get()/->getDefinition() calls against the real
+		# compiled test container, not the local ContainerBuilder these tests build
+		# and setPublic() on by hand.
+		-
+			message: '#Service ".*" is private\.#'
+			path: src/Versioning/Tests/Symfony/DependencyInjection/VersioningPassTest.php
 
 		# Expected, due to backward compatibility
 		- '#Access to an undefined property GraphQL\\Type\\Definition\\NamedType&GraphQL\\Type\\Definition\\Type::\$name\.#'

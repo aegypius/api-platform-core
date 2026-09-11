@@ -37,7 +37,7 @@ final class AddVersionHeadersListenerTest extends TestCase
                 return null;
             }
 
-            public function getVary(): ?string
+            public function getVary(): string
             {
                 return 'Accept-Version';
             }

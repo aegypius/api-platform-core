@@ -22,7 +22,7 @@ namespace ApiPlatform\Versioning\Metadata;
 final class MutatorRegistry
 {
     /**
-     * @param array<class-string, array<string, list<BoundMutation>>> $mutations resource => for-version => mutations
+     * @param array<class-string, array<string, list<BoundMutation>>> $mutations   resource => for-version => mutations
      * @param list<string>                                            $forVersions distinct versions produced by mutators
      */
     public function __construct(

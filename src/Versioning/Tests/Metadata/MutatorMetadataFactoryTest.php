@@ -62,7 +62,11 @@ final class MutatorMetadataFactoryTest extends TestCase
 
         $kinds = array_map(static fn ($m): string => $m->mutation::class, $mutations);
         $this->assertSame([Remove::class, Rename::class, Remove::class], $kinds);
+
+        $this->assertInstanceOf(Remove::class, $mutations[0]->mutation);
         $this->assertSame('discount', $mutations[0]->mutation->property);
+
+        $this->assertInstanceOf(Remove::class, $mutations[2]->mutation);
         $this->assertSame('internalNotes', $mutations[2]->mutation->property);
     }
 

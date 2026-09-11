@@ -9,6 +9,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 use ApiPlatform\Versioning\Metadata\MutatorMetadataFactory;
 use ApiPlatform\Versioning\Metadata\MutatorRegistry;
 use ApiPlatform\Versioning\OpenApi\ChangelogFactory;
@@ -88,7 +90,7 @@ return static function (ContainerConfigurator $container): void {
             service('api_platform.versioning.registry'),
             service('api_platform.versioning.chain_resolver'),
             service('api_platform.versioning.schema_mutator'),
-            service('api_platform.versioning.schema_name_resolver'),
+            service(SchemaNameResolverInterface::class),
             service('api_platform.versioning.changelog_factory'),
         ]);
 

@@ -60,7 +60,7 @@ final class VersionedOpenApiNormalizer implements NormalizerInterface
             throw OutOfRangeVersionException::notRequestable($version, $this->graph->getRequestableVersions());
         }
 
-        /** @var array<string, mixed> $document */
+        /* @var array<string, mixed> $document */
         if ($context[self::OVERLAY_CONTEXT_KEY] ?? false) {
             return $this->overlay($document, $version);
         }

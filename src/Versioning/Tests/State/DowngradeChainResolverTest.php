@@ -22,8 +22,8 @@ use ApiPlatform\Versioning\Tests\Fixtures\Book;
 use ApiPlatform\Versioning\Tests\Fixtures\BookBananaToApple;
 use ApiPlatform\Versioning\Tests\Fixtures\BookCherryToBanana;
 use ApiPlatform\Versioning\Tests\Fixtures\DropInternalNotes;
-use ApiPlatform\Versioning\Tests\Fixtures\Review;
 use ApiPlatform\Versioning\Tests\Fixtures\FruitComparator;
+use ApiPlatform\Versioning\Tests\Fixtures\Review;
 use ApiPlatform\Versioning\Version\VersionGraph;
 use PHPUnit\Framework\TestCase;
 

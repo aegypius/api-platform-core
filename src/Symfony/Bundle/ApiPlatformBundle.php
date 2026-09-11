@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Symfony\Bundle;
 
-use ApiPlatform\Versioning\Symfony\DependencyInjection\VersioningPass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\AttributeFilterPass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\AttributeResourcePass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\AuthenticatorManagerPass;
@@ -30,6 +29,7 @@ use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\PropertyInfoTagPass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\SerializerMappingLoaderPass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\TestClientPass;
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Compiler\TestMercureHubPass;
+use ApiPlatform\Versioning\Symfony\DependencyInjection\VersioningPass;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
