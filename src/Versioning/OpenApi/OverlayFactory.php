@@ -38,11 +38,11 @@ final class OverlayFactory
      */
     public function actionsForSchema(string $schemaName, array $head, array $mutated): array
     {
-        $base = \sprintf("$.components.schemas['%s']", $schemaName);
-        $actions = [];
+        [$headProperties, $headRequired, $headPath] = $this->propertiesOf($head);
+        [$mutatedProperties, $mutatedRequired] = $this->propertiesOf($mutated);
 
-        $headProperties = \is_array($head['properties'] ?? null) ? $head['properties'] : [];
-        $mutatedProperties = \is_array($mutated['properties'] ?? null) ? $mutated['properties'] : [];
+        $base = \sprintf("$.components.schemas['%s']%s", $schemaName, $headPath);
+        $actions = [];
 
         // Removed properties.
         foreach ($headProperties as $name => $_) {
@@ -59,13 +59,39 @@ final class OverlayFactory
         }
 
         // Required set, when it changed (arrays are replaced wholesale by update).
-        $headRequired = array_values($head['required'] ?? []);
-        $mutatedRequired = array_values($mutated['required'] ?? []);
         if ($headRequired !== $mutatedRequired) {
             $actions[] = ['target' => $base.'.required', 'update' => $mutatedRequired];
         }
 
         return $actions;
+    }
+
+    /**
+     * Reads a schema's own properties/required, following JSON-LD/Hydra's
+     * allOf composition (the resource's properties live in the allOf member
+     * that isn't a bare $ref) so overlay diffing sees the same shape
+     * {@see SchemaMutator} mutates.
+     *
+     * @param array<string, mixed> $schema
+     *
+     * @return array{0: array<string, mixed>, 1: list<string>, 2: string}
+     */
+    private function propertiesOf(array $schema): array
+    {
+        $path = '';
+
+        if (\is_array($schema['allOf'] ?? null)) {
+            $index = AllOfProperties::indexOf($schema['allOf']);
+            if (null !== $index) {
+                $schema = $schema['allOf'][$index];
+                $path = ".allOf[{$index}]";
+            }
+        }
+
+        $properties = \is_array($schema['properties'] ?? null) ? $schema['properties'] : [];
+        $required = array_values($schema['required'] ?? []);
+
+        return [$properties, $required, $path];
     }
 
     /**
