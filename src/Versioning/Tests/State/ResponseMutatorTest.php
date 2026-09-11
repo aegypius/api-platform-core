@@ -37,7 +37,7 @@ final class ResponseMutatorTest extends TestCase
     }
 
     /**
-     * @param list<BoundMutation> $chain
+     * @return list<BoundMutation>
      */
     private function chain(string $resource, string $target): array
     {
@@ -80,19 +80,19 @@ final class ResponseMutatorTest extends TestCase
 
     public function testClassLevelRenameIsPureKeySwap(): void
     {
-        $chain = [new BoundMutation(new Rename(from: 'title', to: 'name'), 'X')];
+        $chain = [new BoundMutation(new Rename(from: 'title', to: 'name'), self::class)];
         $this->assertSame(['name' => 'Foo'], $this->mutator()->mutate(['title' => 'Foo'], $chain, []));
     }
 
     public function testRemoveDropsProperty(): void
     {
-        $chain = [new BoundMutation(new Remove('discount'), 'X')];
+        $chain = [new BoundMutation(new Remove('discount'), self::class)];
         $this->assertSame(['a' => 1], $this->mutator()->mutate(['a' => 1, 'discount' => 9], $chain, []));
     }
 
     public function testClassLevelRestoreInjectsStaticValue(): void
     {
-        $chain = [new BoundMutation(new Restore(property: 'legacyFlag', value: 0), 'X')];
+        $chain = [new BoundMutation(new Restore(property: 'legacyFlag', value: 0), self::class)];
         $this->assertSame(['a' => 1, 'legacyFlag' => 0], $this->mutator()->mutate(['a' => 1], $chain, []));
     }
 
@@ -142,7 +142,7 @@ final class ResponseMutatorTest extends TestCase
 
     public function testClassLevelChangeTypeIsDocOnlyAndLeavesValue(): void
     {
-        $chain = [new BoundMutation(new ChangeType(property: 'active', from: 'boolean', to: 'integer'), 'X')];
+        $chain = [new BoundMutation(new ChangeType(property: 'active', from: 'boolean', to: 'integer'), self::class)];
         $this->assertSame(['active' => true], $this->mutator()->mutate(['active' => true], $chain, []));
     }
 

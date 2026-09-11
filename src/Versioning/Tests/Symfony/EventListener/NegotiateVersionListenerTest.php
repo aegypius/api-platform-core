@@ -38,7 +38,7 @@ final class NegotiateVersionListenerTest extends TestCase
                 return $this->resolved;
             }
 
-            public function getVary(): ?string
+            public function getVary(): string
             {
                 return 'Accept-Version';
             }

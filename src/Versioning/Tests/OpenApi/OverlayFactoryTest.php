@@ -198,7 +198,7 @@ final class OverlayFactoryTest extends TestCase
             $schema = &$schema['allOf'][(int) $matches['index']];
         }
 
-        if (isset($matches['property']) && '' !== $matches['property']) {
+        if (isset($matches['property'])) {
             if ($action['remove'] ?? false) {
                 unset($schema['properties'][$matches['property']]);
             } else {

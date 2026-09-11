@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
 final class SchemaMutatorTest extends TestCase
 {
     /**
-     * @return list<\ApiPlatform\Versioning\Metadata\BoundMutation>
+     * @return list<BoundMutation>
      */
     private function chain(string $target): array
     {

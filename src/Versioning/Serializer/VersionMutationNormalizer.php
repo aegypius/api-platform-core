@@ -62,7 +62,7 @@ final class VersionMutationNormalizer implements NormalizerInterface, Denormaliz
             return $normalized;
         }
 
-        /** @var array<string, mixed> $normalized */
+        /* @var array<string, mixed> $normalized */
         return $this->responseMutator->mutate($normalized, $chain, [
             'resource' => $data,
             'operation' => $context['operation'] ?? null,

@@ -130,7 +130,7 @@ final class ResponseMutator
     private function instantiate(string $class): object
     {
         if ($this->mutators?->has($class)) {
-            /** @var object */
+            /* @var object */
             return $this->mutators->get($class);
         }
 

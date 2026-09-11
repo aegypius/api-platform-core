@@ -79,6 +79,10 @@ class ConfigurationTest extends TestCase
             'description' => 'description',
             'enable_json_streamer' => class_exists(ControllerHelper::class) && class_exists(JsonStreamWriter::class),
             'version' => '1.0.0',
+            'versioning' => [
+                'header' => 'Accept-Version',
+                'comparator' => 'api_platform.versioning.comparator.semver',
+            ],
             'show_webby' => true,
             'formats' => [
                 'jsonld' => ['mime_types' => ['application/ld+json']],

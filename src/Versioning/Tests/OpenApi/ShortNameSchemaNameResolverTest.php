@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Versioning\Tests\OpenApi;
 
 use ApiPlatform\Versioning\OpenApi\ShortNameSchemaNameResolver;
+use ApiPlatform\Versioning\Tests\Fixtures\Book;
 use PHPUnit\Framework\TestCase;
 
 final class ShortNameSchemaNameResolverTest extends TestCase
@@ -22,7 +23,7 @@ final class ShortNameSchemaNameResolverTest extends TestCase
     {
         $names = ['Book', 'Book.jsonld', 'Book-read', 'Bookmark', 'Bookmark.jsonld', 'Author'];
 
-        $resolved = (new ShortNameSchemaNameResolver())->resolveSchemaNames('App\Entity\Book', $names);
+        $resolved = (new ShortNameSchemaNameResolver())->resolveSchemaNames(Book::class, $names);
 
         // "Bookmark" must not be captured by the "Book" boundary.
         $this->assertSame(['Book', 'Book.jsonld', 'Book-read'], $resolved);
@@ -30,7 +31,8 @@ final class ShortNameSchemaNameResolverTest extends TestCase
 
     public function testHandlesUnqualifiedClassName(): void
     {
-        $resolved = (new ShortNameSchemaNameResolver())->resolveSchemaNames('Author', ['Author', 'Book']);
-        $this->assertSame(['Author'], $resolved);
+        // stdClass lives in the global namespace, so its FQCN has no backslash.
+        $resolved = (new ShortNameSchemaNameResolver())->resolveSchemaNames(\stdClass::class, ['stdClass', 'Book']);
+        $this->assertSame(['stdClass'], $resolved);
     }
 }

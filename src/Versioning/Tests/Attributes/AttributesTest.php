@@ -19,6 +19,7 @@ use ApiPlatform\Versioning\Attributes\Rename;
 use ApiPlatform\Versioning\Attributes\Restore;
 use ApiPlatform\Versioning\Attributes\VersionMutationInterface;
 use ApiPlatform\Versioning\Attributes\VersionMutator;
+use ApiPlatform\Versioning\Tests\Fixtures\Book;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -26,8 +27,8 @@ final class AttributesTest extends TestCase
 {
     public function testVersionMutatorHoldsBinding(): void
     {
-        $m = new VersionMutator(resource: 'App\Book', for: 'banana');
-        $this->assertSame('App\Book', $m->resource);
+        $m = new VersionMutator(resource: Book::class, for: 'banana');
+        $this->assertSame(Book::class, $m->resource);
         $this->assertSame('banana', $m->for);
     }
 
